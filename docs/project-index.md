@@ -5,7 +5,7 @@ Comprehensive index of the 12 applications contained within the Cartly repositor
 | # | Folder | Project Display Name | Category | Primary Database | Key Capabilities | Status |
 |---|---|---|---|---|---|---|
 | 01 | `01-online-bookstore` | Online Bookstore | E-Commerce | `cartly_bookstore_db` | Multi-format catalog, ISBN search, inventory movement audit, recommendations, coupons | Completed |
-| 02 | `02-progressive-web-app-store` | Progressive Web App (PWA) Store | Mobile Commerce | `cartly_pwa_store_db` | Offline browsing, background action sync queue, Web App Manifest, push notifications | Planned |
+| 02 | `02-progressive-web-app-store` | Progressive Web App (PWA) Store | Mobile Commerce | `cartly_pwa_store_db` | Offline browsing, background action sync queue, Web App Manifest, push notifications | Completed |
 | 03 | `03-job-board-platform` | Job Board Platform | Marketplace | `cartly_job_board_db` | Applicant tracking pipeline, resume uploads, candidate filtering, company portals | Planned |
 | 04 | `04-hotel-booking-system` | Hotel Booking System | Hospitality Reservation | `cartly_hotel_booking_db` | Multi-night availability engine, seasonal pricing, temporary reservation holds, invoices | Planned |
 | 05 | `05-restaurant-reservation-system` | Restaurant Reservation System | Dining Reservation | `cartly_restaurant_reservation_db` | Table allocation, slot buffer rules, combinable tables, automated waitlist promotions | Planned |

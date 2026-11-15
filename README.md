@@ -20,7 +20,7 @@ Every application is engineered with its own dedicated frontend, backend, databa
 | # | Directory | Project Display Name | Category | Primary Tech Stack | Status | Documentation |
 |---|---|---|---|---|---|---|
 | 01 | [`01-online-bookstore`](./01-online-bookstore/) | Online Bookstore | E-Commerce | Next.js, Express/TypeScript, PostgreSQL, Prisma, Redis | Completed | [Docs](./01-online-bookstore/docs/) |
-| 02 | [`02-progressive-web-app-store`](./02-progressive-web-app-store/) | Progressive Web App (PWA) Store | Mobile Commerce | Next.js, Workbox, IndexedDB, NestJS, PostgreSQL | Planned | [Docs](./02-progressive-web-app-store/docs/) |
+| 02 | [`02-progressive-web-app-store`](./02-progressive-web-app-store/) | Progressive Web App (PWA) Store | Mobile Commerce | Next.js, Workbox/Service Workers, Express/TypeScript, PostgreSQL | Completed | [Docs](./02-progressive-web-app-store/docs/) |
 | 03 | [`03-job-board-platform`](./03-job-board-platform/) | Job Board Platform | Recruitment Marketplace | Next.js, NestJS, PostgreSQL, Prisma, Redis | Planned | [Docs](./03-job-board-platform/docs/) |
 | 04 | [`04-hotel-booking-system`](./04-hotel-booking-system/) | Hotel Booking System | Hospitality Reservation | Next.js, NestJS, PostgreSQL, Prisma, Redis | Planned | [Docs](./04-hotel-booking-system/docs/) |
 | 05 | [`05-restaurant-reservation-system`](./05-restaurant-reservation-system/) | Restaurant Reservation System | Dining Reservation | Next.js, NestJS, PostgreSQL, Prisma, Redis | Planned | [Docs](./05-restaurant-reservation-system/docs/) |
