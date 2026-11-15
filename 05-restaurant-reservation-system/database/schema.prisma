@@ -1,0 +1,132 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  DINER
+  HOST
+  ADMIN
+}
+
+enum SeatingZone {
+  INDOOR_MAIN
+  PATIO_TERRACE
+  BAR_HIGHTOP
+  CHEFS_COUNTER
+}
+
+enum ReservationStatus {
+  CONFIRMED
+  SEATED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  WAITLIST
+  PROMOTED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role          @default(DINER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reservations Reservation[]
+
+  @@map("users")
+}
+
+model Restaurant {
+  id           String        @id @default(uuid())
+  name         String
+  slug         String        @unique
+  description  String
+  cuisine      String        // Italian, Contemporary American, Japanese, French
+  priceTier    String        // $$, $$$, $$$$
+  address      String
+  city         String
+  neighborhood String
+  openTime     String        @default("17:00")
+  closeTime    String        @default("22:30")
+  amenities    Json          @default("[]")
+  images       Json          @default("[]")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  tables       DiningTable[]
+  reservations Reservation[]
+
+  @@index([city, cuisine])
+  @@map("restaurants")
+}
+
+model DiningTable {
+  id                    String      @id @default(uuid())
+  restaurantId          String
+  tableNumber           String
+  seatingZone           SeatingZone @default(INDOOR_MAIN)
+  minCapacity           Int         @default(2)
+  maxCapacity           Int         @default(4)
+  isCombinable          Boolean     @default(false)
+  combinableWithTableIds Json       @default("[]") // Array of string IDs
+  restaurant            Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, seatingZone])
+  @@map("dining_tables")
+}
+
+model Reservation {
+  id                    String            @id @default(uuid())
+  reservationCode       String            @unique
+  restaurantId          String
+  tableIds              Json              @default("[]") // Array of table IDs allocated
+  guestId               String
+  guestName             String
+  guestEmail            String
+  guestPhone            String?
+  reservationDate       String            // YYYY-MM-DD
+  timeSlot              String            // HH:mm (e.g. 19:00)
+  partySize             Int
+  seatingZone           SeatingZone       @default(INDOOR_MAIN)
+  specialRequests       String?
+  status                ReservationStatus @default(CONFIRMED)
+  durationMinutes       Int               @default(90)
+  turnoverBufferMinutes Int               @default(15)
+  promotedUntil         DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  user                  User              @relation(fields: [guestId], references: [id])
+  restaurant            Restaurant        @relation(fields: [restaurantId], references: [id])
+
+  @@index([restaurantId, reservationDate, timeSlot])
+  @@index([guestId])
+  @@map("reservations")
+}
+
+model WaitlistEntry {
+  id                    String            @id @default(uuid())
+  restaurantId          String
+  guestId               String
+  guestName             String
+  guestEmail            String
+  guestPhone            String?
+  reservationDate       String            // YYYY-MM-DD
+  preferredTimeSlot     String            // HH:mm
+  partySize             Int
+  seatingZone           SeatingZone       @default(INDOOR_MAIN)
+  priorityIndex         Int               @default(1)
+  status                String            @default("WAITLIST") // WAITLIST, PROMOTED, CLAIMED, EXPIRED, CANCELLED
+  promotedReservationId String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([restaurantId, reservationDate, status])
+  @@map("waitlist_entries")
+}
