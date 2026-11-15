@@ -1,0 +1,210 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  JOB_SEEKER
+  EMPLOYER
+  ADMIN
+}
+
+enum ApplicationStatus {
+  APPLIED
+  REVIEWED
+  SHORTLISTED
+  INTERVIEW
+  OFFERED
+  REJECTED
+  WITHDRAWN
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  REMOTE
+  HYBRID
+}
+
+model User {
+  id            String            @id @default(uuid())
+  email         String            @unique
+  passwordHash  String
+  role          Role              @default(JOB_SEEKER)
+  name          String
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  seekerProfile JobSeekerProfile?
+  employer      Employer?
+
+  @@map("users")
+}
+
+model JobSeekerProfile {
+  id            String           @id @default(uuid())
+  userId        String           @unique
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  headline      String?
+  bio           String?
+  location      String?
+  desiredSalary Decimal?         @db.Decimal(10, 2)
+  skills        String[]
+  resumes       Resume[]
+  applications  JobApplication[]
+  savedJobs     SavedJob[]
+  alerts        JobAlert[]
+
+  @@map("job_seeker_profiles")
+}
+
+model Company {
+  id           String     @id @default(uuid())
+  name         String
+  slug         String     @unique
+  website      String?
+  logoUrl      String?
+  description  String
+  headquarters String
+  isVerified   Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  employers    Employer[]
+  jobs         Job[]
+
+  @@map("companies")
+}
+
+model Employer {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title     String?
+  createdAt DateTime @default(now())
+
+  @@map("employers")
+}
+
+model JobCategory {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  jobs      Job[]
+
+  @@map("job_categories")
+}
+
+model Job {
+  id             String           @id @default(uuid())
+  companyId      String
+  company        Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  categoryId     String
+  category       JobCategory      @relation(fields: [categoryId], references: [id])
+  title          String
+  slug           String           @unique
+  description    String
+  jobType        JobType          @default(FULL_TIME)
+  location       String
+  minSalary      Decimal          @db.Decimal(10, 2)
+  maxSalary      Decimal          @db.Decimal(10, 2)
+  requiredSkills String[]
+  isPublished    Boolean          @default(true)
+  expiresAt      DateTime
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  applications   JobApplication[]
+  savedBy        SavedJob[]
+
+  @@index([companyId])
+  @@index([categoryId])
+  @@index([title])
+  @@map("jobs")
+}
+
+model Resume {
+  id             String           @id @default(uuid())
+  seekerId       String
+  seeker         JobSeekerProfile @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  fileName       String
+  fileUrl        String
+  parsedKeywords String[]
+  uploadedAt     DateTime         @default(now())
+  applications   JobApplication[]
+
+  @@map("resumes")
+}
+
+model JobApplication {
+  id            String                     @id @default(uuid())
+  jobId         String
+  job           Job                        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  seekerId      String
+  seeker        JobSeekerProfile           @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  resumeId      String
+  resume        Resume                     @relation(fields: [resumeId], references: [id])
+  coverNote     String?
+  status        ApplicationStatus          @default(APPLIED)
+  matchScore    Int                        @default(0)
+  createdAt     DateTime                   @default(now())
+  updatedAt     DateTime                   @updatedAt
+  history       ApplicationStatusHistory[]
+  interviews    Interview[]
+
+  @@unique([jobId, seekerId])
+  @@map("job_applications")
+}
+
+model ApplicationStatusHistory {
+  id            String            @id @default(uuid())
+  applicationId String
+  application   JobApplication    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromStatus    ApplicationStatus
+  toStatus      ApplicationStatus
+  changedBy     String
+  note          String?
+  timestamp     DateTime          @default(now())
+
+  @@map("application_status_history")
+}
+
+model SavedJob {
+  id       String           @id @default(uuid())
+  seekerId String
+  seeker   JobSeekerProfile @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  jobId    String
+  job      Job              @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  savedAt  DateTime         @default(now())
+
+  @@unique([seekerId, jobId])
+  @@map("saved_jobs")
+}
+
+model Interview {
+  id            String         @id @default(uuid())
+  applicationId String
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  scheduledAt   DateTime
+  meetingLink   String?
+  notes         String?
+  createdAt     DateTime       @default(now())
+
+  @@map("interviews")
+}
+
+model JobAlert {
+  id         String           @id @default(uuid())
+  seekerId   String
+  seeker     JobSeekerProfile @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  keywords   String
+  categoryId String?
+  minSalary  Decimal?         @db.Decimal(10, 2)
+  createdAt  DateTime         @default(now())
+
+  @@map("job_alerts")
+}
