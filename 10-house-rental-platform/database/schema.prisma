@@ -1,0 +1,220 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  TENANT
+  LANDLORD
+  ADMIN
+}
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  TOWNHOUSE
+  CONDO
+  STUDIO
+}
+
+enum PetPolicy {
+  ALLOWED
+  CATS_ONLY
+  DOGS_ONLY
+  NO_PETS
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  OCCUPIED
+  OFF_MARKET
+}
+
+enum ApplicationStatus {
+  APPLICATION_SUBMITTED
+  UNDER_REVIEW
+  LEASE_OFFERED
+  LEASE_SIGNED
+  REJECTED
+}
+
+enum LeaseStatus {
+  DRAFT
+  LEASE_OFFERED
+  LEASE_SIGNED
+  ACTIVE
+  TERMINATED
+}
+
+enum MaintenanceCategory {
+  PLUMBING
+  ELECTRICAL
+  HVAC
+  APPLIANCE
+  GENERAL
+}
+
+enum UrgencyLevel {
+  EMERGENCY
+  HIGH
+  STANDARD
+}
+
+enum MaintenanceStatus {
+  OPEN
+  SCHEDULED
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  LATE
+}
+
+model User {
+  id               String                 @id @default(uuid())
+  email            String                 @unique
+  passwordHash     String
+  fullName         String
+  phone            String?
+  role             UserRole               @default(TENANT)
+  properties       Property[]             @relation("LandlordProperties")
+  applications     TenantApplication[]    @relation("ApplicantApplications")
+  viewings         ViewingAppointment[]   @relation("TenantViewings")
+  tenantLeases     LeaseAgreement[]       @relation("TenantLeases")
+  landlordLeases   LeaseAgreement[]       @relation("LandlordLeases")
+  tickets          MaintenanceTicket[]    @relation("TenantTickets")
+  payments         RentPayment[]          @relation("TenantPayments")
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+}
+
+model Property {
+  id               String                 @id @default(uuid())
+  landlordId       String
+  landlord         User                   @relation("LandlordProperties", fields: [landlordId], references: [id])
+  title            String
+  description      String
+  address          String
+  city             String
+  state            String
+  zipCode          String
+  propertyType     PropertyType           @default(APARTMENT)
+  bedrooms         Int
+  bathrooms        Float
+  squareFeet       Int
+  monthlyRent      Float
+  securityDeposit  Float
+  availableDate    DateTime
+  minLeaseMonths   Int                    @default(12)
+  petPolicy        PetPolicy              @default(NO_PETS)
+  utilitiesIncluded String[]
+  amenities        String[]
+  status           PropertyStatus         @default(AVAILABLE)
+  imageUrls        String[]
+  applications     TenantApplication[]
+  viewings         ViewingAppointment[]
+  leases           LeaseAgreement[]
+  tickets          MaintenanceTicket[]
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+}
+
+model TenantApplication {
+  id                  String             @id @default(uuid())
+  propertyId          String
+  property            Property           @relation(fields: [propertyId], references: [id])
+  applicantId         String
+  applicant           User               @relation("ApplicantApplications", fields: [applicantId], references: [id])
+  monthlyIncome       Float
+  creditScoreBracket  String             // e.g. "EXCELLENT", "GOOD", "FAIR", "POOR"
+  employmentStatus    String
+  employerName        String
+  documentMetadata    Json?
+  proposedMoveInDate  DateTime
+  proposedLeaseMonths Int                @default(12)
+  status              ApplicationStatus  @default(APPLICATION_SUBMITTED)
+  landlordNotes       String?
+  leaseAgreement      LeaseAgreement?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+}
+
+model ViewingAppointment {
+  id          String    @id @default(uuid())
+  propertyId  String
+  property    Property  @relation(fields: [propertyId], references: [id])
+  tenantId    String
+  tenant      User      @relation("TenantViewings", fields: [tenantId], references: [id])
+  slotTime    DateTime
+  status      String    @default("CONFIRMED")
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([propertyId, slotTime])
+}
+
+model LeaseAgreement {
+  id                 String             @id @default(uuid())
+  propertyId         String
+  property           Property           @relation(fields: [propertyId], references: [id])
+  landlordId         String
+  landlord           User               @relation("LandlordLeases", fields: [landlordId], references: [id])
+  tenantId           String
+  tenant             User               @relation("TenantLeases", fields: [tenantId], references: [id])
+  applicationId      String?            @unique
+  application        TenantApplication? @relation(fields: [applicationId], references: [id])
+  startDate          DateTime
+  endDate            DateTime
+  monthlyRent        Float
+  securityDeposit    Float
+  status             LeaseStatus        @default(DRAFT)
+  signedAt           DateTime?
+  termsAndConditions String
+  tickets            MaintenanceTicket[]
+  payments           RentPayment[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+}
+
+model MaintenanceTicket {
+  id               String               @id @default(uuid())
+  leaseId          String
+  lease            LeaseAgreement       @relation(fields: [leaseId], references: [id])
+  propertyId       String
+  property         Property             @relation(fields: [propertyId], references: [id])
+  tenantId         String
+  tenant           User                 @relation("TenantTickets", fields: [tenantId], references: [id])
+  title            String
+  description      String
+  category         MaintenanceCategory  @default(GENERAL)
+  urgency          UrgencyLevel         @default(STANDARD)
+  status           MaintenanceStatus    @default(OPEN)
+  photoUrl         String?
+  resolutionNotes  String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+}
+
+model RentPayment {
+  id               String         @id @default(uuid())
+  leaseId          String
+  lease            LeaseAgreement @relation(fields: [leaseId], references: [id])
+  tenantId         String
+  tenant           User           @relation("TenantPayments", fields: [tenantId], references: [id])
+  amount           Float
+  dueDate          DateTime
+  paidAt           DateTime?
+  status           PaymentStatus  @default(PENDING)
+  paymentMethod    String?
+  transactionRef   String?
+  receiptNumber    String?
+  createdAt        DateTime       @default(now())
+}
