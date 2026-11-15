@@ -1,0 +1,126 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  PATRON
+  USHER
+  ADMIN
+}
+
+enum BookingStatus {
+  HELD
+  CONFIRMED
+  ADMITTED
+  CANCELLED
+  EXPIRED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role          @default(PATRON)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  bookings     Booking[]
+
+  @@map("users")
+}
+
+model Movie {
+  id              String     @id @default(uuid())
+  title           String
+  slug            String     @unique
+  synopsis        String
+  posterUrl       String
+  backdropUrl     String
+  genre           String     // Sci-Fi, Action, Drama, Animation
+  mpaaRating      String     // PG, PG-13, R
+  durationMinutes Int        @default(120)
+  releaseDate     String
+  isFeatured      Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  showtimes       Showtime[]
+
+  @@index([genre])
+  @@map("movies")
+}
+
+model Auditorium {
+  id            String     @id @default(uuid())
+  name          String     // "Auditorium 1 - IMAX Grand"
+  screenType    String     // IMAX, Dolby Atmos, Standard
+  totalSeats    Int        @default(70)
+  rowsCount     Int        @default(7) // A-G
+  columnsPerRow Int        @default(10)
+  showtimes     Showtime[]
+
+  @@map("auditoriums")
+}
+
+model Showtime {
+  id           String     @id @default(uuid())
+  movieId      String
+  auditoriumId String
+  showDate     String     // YYYY-MM-DD
+  startTime    String     // HH:mm (e.g. 19:30)
+  endTime      String     // HH:mm
+  format       String     // IMAX 3D, 2D Digital, Dolby Cinema
+  movie        Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  auditorium   Auditorium @relation(fields: [auditoriumId], references: [id], onDelete: Cascade)
+  bookings     Booking[]
+
+  @@index([movieId, showDate])
+  @@map("showtimes")
+}
+
+model Booking {
+  id                 String        @id @default(uuid())
+  ticketCode         String        @unique
+  showtimeId         String
+  guestId            String
+  guestName          String
+  guestEmail         String
+  guestPhone         String?
+  seatNumbers        Json          // Array of strings, e.g. ["D4", "D5"]
+  subtotal           Float
+  convenienceFee     Float
+  totalAmount        Float
+  status             BookingStatus @default(HELD)
+  expiresAt          DateTime      // 8-minute hold window
+  paidAt             DateTime?
+  admittedAt         DateTime?
+  admittedByUsherId  String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  user               User          @relation(fields: [guestId], references: [id])
+  showtime           Showtime      @relation(fields: [showtimeId], references: [id])
+  payments           PaymentRecord[]
+
+  @@index([showtimeId, status])
+  @@index([guestId])
+  @@map("bookings")
+}
+
+model PaymentRecord {
+  id             String   @id @default(uuid())
+  bookingId      String
+  amount         Float
+  currency       String   @default("USD")
+  status         String   // SUCCESS, FAILED, REFUNDED
+  idempotencyKey String   @unique
+  providerRef    String
+  createdAt      DateTime @default(now())
+  booking        Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("payment_records")
+}

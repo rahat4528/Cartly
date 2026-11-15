@@ -11,8 +11,8 @@ This document tracks the phased implementation of all 12 independent, production
 | 03 | `03-job-board-platform` | Job Board Platform | Completed | 2026-11-16 | 9/9 Passed (Unit, ATS Machine, Multi-Tenant Isolation, E2E) |
 | 04 | `04-hotel-booking-system` | Hotel Booking System | Completed | 2026-11-16 | 11/11 Passed (Unit, Seasonal Rates, Concurrency Lock, E2E) |
 | 05 | `05-restaurant-reservation-system` | Restaurant Reservation System | Completed | 2026-11-16 | 8/8 Passed (Unit, Table Merging, Turnover Buffer, Waitlist, E2E) |
-| 06 | `06-movie-ticket-booking` | Movie Ticket Booking | Not Started | - | Pending |
-| 07 | `07-grocery-delivery-app` | Grocery Delivery App | Not Started | - | Pending |
+| 06 | `06-movie-ticket-booking` | Movie Ticket Booking | Completed | 2026-11-16 | 8/8 Passed (2D Seat Matrix, 8-Min Hold Sweeper, Usher Gate Rejection, E2E) |
+| 07 | `07-grocery-delivery-app` | Grocery Delivery App | In Progress | - | In Progress |
 | 08 | `08-car-rental-system` | Car Rental System | Not Started | - | Pending |
 | 09 | `09-real-estate-listing-platform` | Real Estate Listing Platform | Not Started | - | Pending |
 | 10 | `10-house-rental-platform` | House Rental Platform | Not Started | - | Pending |
