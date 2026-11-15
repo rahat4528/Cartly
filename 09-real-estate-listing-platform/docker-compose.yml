@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cartly_real_estate_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cartly_real_estate_db
+    ports:
+      - "5440:5432"
+    volumes:
+      - real_estate_pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: cartly_real_estate_redis
+    restart: unless-stopped
+    ports:
+      - "6387:6379"
+    volumes:
+      - real_estate_redisdata:/data
+
+volumes:
+  real_estate_pgdata:
+  real_estate_redisdata:

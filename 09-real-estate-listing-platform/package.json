@@ -1,0 +1,22 @@
+{
+  "name": "09-real-estate-listing-platform",
+  "version": "1.0.0",
+  "description": "Cartly Phase 09 - Real Estate Listing Platform",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "backend:dev": "npm --prefix backend run dev",
+    "backend:test": "npm --prefix backend test",
+    "frontend:dev": "npm --prefix frontend dev",
+    "frontend:build": "npm --prefix frontend build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/supertest": "^6.0.2",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}

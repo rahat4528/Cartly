@@ -14,8 +14,8 @@ This document tracks the phased implementation of all 12 independent, production
 | 06 | `06-movie-ticket-booking` | Movie Ticket Booking | Completed | 2026-11-16 | 8/8 Passed (2D Seat Matrix, 8-Min Hold Sweeper, Usher Gate Rejection, E2E) |
 | 07 | `07-grocery-delivery-app` | Grocery Delivery App | Completed | 2026-11-16 | 8/8 Passed (Slot Capacity Mutex, Substitution Policies, Fulfillment Stepper, E2E) |
 | 08 | `08-car-rental-system` | Car Rental System | Completed | 2026-11-16 | 8/8 Passed (Date-Overlap Lock, Tiered Discounts, Escrow Damage Deductions, E2E) |
-| 09 | `09-real-estate-listing-platform` | Real Estate Listing Platform | In Progress | - | In Progress |
-| 10 | `10-house-rental-platform` | House Rental Platform | Not Started | - | Pending |
+| 09 | `09-real-estate-listing-platform` | Real Estate Listing Platform | Completed | 2026-11-16 | 7/7 Passed (Haversine Distance, Bounding Box, Price History Ledger, E2E) |
+| 10 | `10-house-rental-platform` | House Rental Platform | In Progress | - | In Progress |
 | 11 | `11-airbnb-clone` | Airbnb Clone | Not Started | - | Pending |
 | 12 | `12-flight-booking-system` | Flight Booking System | Not Started | - | Pending |
 

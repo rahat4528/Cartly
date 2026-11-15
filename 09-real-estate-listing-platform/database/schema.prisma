@@ -1,0 +1,118 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  BUYER
+  REAL_ESTATE_AGENT
+  PLATFORM_ADMIN
+}
+
+enum PropertyType {
+  SINGLE_FAMILY
+  CONDO
+  TOWNHOUSE
+  MULTI_FAMILY
+  COMMERCIAL
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_VERIFICATION
+  PUBLISHED
+  UNDER_CONTRACT
+  SOLD
+  DELISTED
+}
+
+enum TourType {
+  IN_PERSON
+  VIRTUAL_WALKTHROUGH
+}
+
+enum TourStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id           String            @id @default(uuid())
+  email        String            @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role              @default(BUYER)
+  agencyName   String?
+  licenseNo    String?
+  properties   Property[]        @relation("AgentProperties")
+  tours        TourAppointment[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model Property {
+  id           String               @id @default(uuid())
+  title        String
+  slug         String               @unique
+  description  String
+  propertyType PropertyType         @default(SINGLE_FAMILY)
+  price        Float
+  bedrooms     Int
+  bathrooms    Float
+  sqft         Int
+  yearBuilt    Int
+  hoaFee       Float                @default(0.0)
+  address      String
+  city         String
+  state        String
+  zipCode      String
+  latitude     Float
+  longitude    Float
+  images       String[]
+  status       ListingStatus        @default(PUBLISHED)
+  agentId      String
+  agent        User                 @relation("AgentProperties", fields: [agentId], references: [id])
+  priceHistory PriceHistoryRecord[]
+  tours        TourAppointment[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([latitude, longitude])
+  @@index([price])
+}
+
+model PriceHistoryRecord {
+  id                 String   @id @default(uuid())
+  propertyId         String
+  property           Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  date               String   // YYYY-MM-DD
+  previousPrice      Float
+  newPrice           Float
+  priceChangeAmount  Float
+  priceChangePercent Float
+  reason             String   @default("Price Adjustment")
+  recordedAt         DateTime @default(now())
+}
+
+model TourAppointment {
+  id         String     @id @default(uuid())
+  propertyId String
+  property   Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User       @relation(fields: [userId], references: [id])
+  tourDate   String     // YYYY-MM-DD
+  tourTime   String     // e.g. "14:00"
+  tourType   TourType   @default(IN_PERSON)
+  notes      String?
+  status     TourStatus @default(SCHEDULED)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@unique([propertyId, tourDate, tourTime])
+}
