@@ -27,10 +27,31 @@ Every application is engineered with its own dedicated frontend, backend, databa
 | 06 | [`06-movie-ticket-booking`](./06-movie-ticket-booking/) | Movie Ticket Booking | Cinema Ticketing | Next.js, Express/TypeScript, PostgreSQL, Prisma, Redis | Completed | [Docs](./06-movie-ticket-booking/docs/) |
 | 07 | [`07-grocery-delivery-app`](./07-grocery-delivery-app/) | Grocery Delivery App | On-Demand Commerce | Next.js, Express/TypeScript, PostgreSQL, Prisma, Redis | Completed | [Docs](./07-grocery-delivery-app/docs/) |
 | 08 | [`08-car-rental-system`](./08-car-rental-system/) | Car Rental System | Fleet Rental | Next.js, Express/TypeScript, PostgreSQL, Prisma, Redis | Completed | [Docs](./08-car-rental-system/docs/) |
-| 09 | [`09-real-estate-listing-platform`](./09-real-estate-listing-platform/) | Real Estate Listing Platform | Spatial Property Marketplace | Next.js, NestJS, PostgreSQL, PostGIS, Prisma | In Progress | [Docs](./09-real-estate-listing-platform/docs/) |
-| 10 | [`10-house-rental-platform`](./10-house-rental-platform/) | House Rental Platform | Residential Leasing | Next.js, NestJS, PostgreSQL, Prisma, Redis | Planned | [Docs](./10-house-rental-platform/docs/) |
-| 11 | [`11-airbnb-clone`](./11-airbnb-clone/) | Airbnb Clone | Short-Stay Marketplace | Next.js, NestJS, PostgreSQL, Prisma, Socket.IO | Planned | [Docs](./11-airbnb-clone/docs/) |
-| 12 | [`12-flight-booking-system`](./12-flight-booking-system/) | Flight Booking System | Demonstration Travel Booking | Next.js, NestJS, PostgreSQL, Prisma, Redis | Planned | [Docs](./12-flight-booking-system/docs/) |
+| 09 | [`09-real-estate-listing-platform`](./09-real-estate-listing-platform/) | Real Estate Listing Platform | Spatial Property Marketplace | Next.js, Express/TypeScript, PostgreSQL, Prisma, Redis | Completed | [Docs](./09-real-estate-listing-platform/docs/) |
+| 10 | [`10-house-rental-platform`](./10-house-rental-platform/) | House Rental Platform | Residential Leasing | Next.js, Express/TypeScript, PostgreSQL, Prisma, Redis | In Progress | [Docs](./10-house-rental-platform/docs/) |
+| 11 | [`11-airbnb-clone`](./11-airbnb-clone/) | Airbnb Clone | Short-Stay Marketplace | Next.js, Express/TypeScript, PostgreSQL, Prisma, Socket.IO | Planned | [Docs](./11-airbnb-clone/docs/) |
+| 12 | [`12-flight-booking-system`](./12-flight-booking-system/) | Flight Booking System | Demonstration Travel Booking | Next.js, Express/TypeScript, PostgreSQL, Prisma, Redis | Planned | [Docs](./12-flight-booking-system/docs/) |
+
+---
+
+## Deployment Status & GitHub Repositories
+
+All projects are hosted in the unified monorepo with dedicated directories. Cloud deployments (Vercel frontend, Render backend) are tracked below:
+
+| # | Project Name | GitHub Directory Link | Vercel (Frontend) | Render (Backend) | Hosting / Deployment Status |
+|---|---|---|---|---|---|
+| 01 | Online Bookstore | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/01-online-bookstore) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
+| 02 | Progressive Web App (PWA) Store | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/02-progressive-web-app-store) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
+| 03 | Job Board Platform | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/03-job-board-platform) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
+| 04 | Hotel Booking System | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/04-hotel-booking-system) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
+| 05 | Restaurant Reservation System | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/05-restaurant-reservation-system) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
+| 06 | Movie Ticket Booking | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/06-movie-ticket-booking) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
+| 07 | Grocery Delivery App | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/07-grocery-delivery-app) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
+| 08 | Car Rental System | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/08-car-rental-system) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
+| 09 | Real Estate Listing Platform | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/09-real-estate-listing-platform) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
+| 10 | House Rental Platform | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/10-house-rental-platform) | **Not Deployed** | **Not Deployed** | Local Containerized / In Progress |
+| 11 | Airbnb Clone | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/11-airbnb-clone) | **Not Deployed** | **Not Deployed** | Local Containerized / Planned |
+| 12 | Flight Booking System | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/12-flight-booking-system) | **Not Deployed** | **Not Deployed** | Local Containerized / Planned |
 
 ---
 
