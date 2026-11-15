@@ -1,0 +1,135 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  RENTER
+  FLEET_AGENT
+  FLEET_MANAGER
+}
+
+enum VehicleCategory {
+  SEDAN
+  SUV
+  ELECTRIC
+  LUXURY
+  MINIVAN
+  COMPACT
+}
+
+enum RentalStatus {
+  RESERVED
+  ACTIVE_RENTAL
+  RETURNED
+  COMPLETED
+  CANCELLED
+}
+
+enum LicenseStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  name          String
+  phone         String?
+  role          Role           @default(RENTER)
+  license       DriverLicense?
+  rentals       Rental[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model DriverLicense {
+  id            String        @id @default(uuid())
+  userId        String        @unique
+  user          User          @relation(fields: [userId], references: [id])
+  licenseNumber String
+  issuingState  String
+  expiryDate    String
+  status        LicenseStatus @default(VERIFIED)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Vehicle {
+  id           String          @id @default(uuid())
+  make         String
+  model        String
+  year         Int
+  category     VehicleCategory
+  vin          String          @unique
+  licensePlate String          @unique
+  transmission String          // AUTOMATIC / MANUAL
+  fuelType     String          // ELECTRIC / GASOLINE / HYBRID
+  seats        Int             @default(5)
+  dailyRate    Float
+  imageUrl     String
+  features     String[]
+  isAvailable  Boolean         @default(true)
+  rentals      Rental[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Rental {
+  id                    String           @id @default(uuid())
+  rentalNumber          String           @unique
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id])
+  vehicleId             String
+  vehicle               Vehicle          @relation(fields: [vehicleId], references: [id])
+  startDate             String           // YYYY-MM-DD
+  endDate               String           // YYYY-MM-DD
+  totalDays             Int
+  dailyRateApplied      Float
+  durationDiscountPct   Float            @default(0.0)
+  baseRentalAmount      Float
+  insuranceAmount       Float            @default(0.0)
+  securityDepositAmount Float            @default(250.00)
+  totalCharged          Float
+  depositRefunded       Float            @default(0.0)
+  damageDeduction       Float            @default(0.0)
+  status                RentalStatus     @default(RESERVED)
+  inspection            InspectionSheet?
+  payments              Payment[]
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+}
+
+model InspectionSheet {
+  id                String   @id @default(uuid())
+  rentalId          String   @unique
+  rental            Rental   @relation(fields: [rentalId], references: [id])
+  pickupOdometer    Int
+  returnOdometer    Int?
+  pickupFuelLevel   String   // "FULL", "75%", etc.
+  returnFuelLevel   String?
+  damagesNotes      String?
+  damageFeeAssessed Float    @default(0.0)
+  inspectedByAgent  String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Payment {
+  id             String   @id @default(uuid())
+  rentalId       String
+  rental         Rental   @relation(fields: [rentalId], references: [id])
+  amount         Float
+  currency       String   @default("USD")
+  type           String   // RENTAL_PAYMENT, SECURITY_DEPOSIT, REFUND
+  status         String   // SUCCEEDED, FAILED
+  cardToken      String
+  idempotencyKey String   @unique
+  createdAt      DateTime @default(now())
+}
