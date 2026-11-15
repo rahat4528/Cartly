@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cartly_hotel_booking_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-cartly_hotel_booking_db}
+    ports:
+      - "${DB_PORT:-5435}:5432"
+    volumes:
+      - hotel_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-cartly_hotel_booking_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: cartly_hotel_booking_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6382}:6379"
+    volumes:
+      - hotel_redis_data:/data
+
+volumes:
+  hotel_postgres_data:
+  hotel_redis_data:

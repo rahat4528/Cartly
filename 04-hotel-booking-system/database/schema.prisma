@@ -1,0 +1,140 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  GUEST
+  HOTELIER
+  ADMIN
+}
+
+enum ReservationStatus {
+  HELD
+  CONFIRMED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role          @default(GUEST)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  reservations Reservation[]
+
+  @@map("users")
+}
+
+model Hotel {
+  id           String         @id @default(uuid())
+  name         String
+  slug         String         @unique
+  description  String
+  address      String
+  city         String
+  country      String
+  starRating   Float          @default(4.5)
+  checkInTime  String         @default("15:00")
+  checkOutTime String         @default("11:00")
+  amenities    Json           @default("[]")
+  images       Json           @default("[]")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  roomTypes    RoomType[]
+  seasonalRules SeasonalRule[]
+  reservations Reservation[]
+
+  @@index([city])
+  @@map("hotels")
+}
+
+model RoomType {
+  id                String        @id @default(uuid())
+  hotelId           String
+  name              String
+  description       String
+  maxGuests         Int           @default(2)
+  bedType           String        @default("1 King Bed")
+  basePricePerNight Float
+  totalRooms        Int           @default(5)
+  amenities         Json          @default("[]")
+  images            Json          @default("[]")
+  hotel             Hotel         @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  reservations      Reservation[]
+
+  @@index([hotelId])
+  @@map("room_types")
+}
+
+model SeasonalRule {
+  id         String   @id @default(uuid())
+  hotelId    String
+  name       String
+  startDate  String   // MM-DD format e.g. "06-01"
+  endDate    String   // MM-DD format e.g. "08-31"
+  multiplier Float    @default(1.35)
+  hotel      Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@index([hotelId])
+  @@map("seasonal_rules")
+}
+
+model Reservation {
+  id               String            @id @default(uuid())
+  voucherCode      String            @unique
+  hotelId          String
+  roomTypeId       String
+  guestId          String
+  guestName        String
+  guestEmail       String
+  guestPhone       String?
+  checkInDate      String            // YYYY-MM-DD
+  checkOutDate     String            // YYYY-MM-DD
+  nightsCount      Int
+  roomsCount       Int               @default(1)
+  status           ReservationStatus @default(HELD)
+  nightlyBreakdown Json              // Array of { date, baseRate, seasonMultiplier, weekendMultiplier, netRate }
+  subtotal         Float
+  taxAmount        Float
+  feesAmount       Float
+  totalAmount      Float
+  expiresAt        DateTime          // 10 minutes from hold
+  paidAt           DateTime?
+  cancelledAt      DateTime?
+  refundAmount     Float?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  user             User              @relation(fields: [guestId], references: [id])
+  hotel            Hotel             @relation(fields: [hotelId], references: [id])
+  roomType         RoomType          @relation(fields: [roomTypeId], references: [id])
+  payments         PaymentRecord[]
+
+  @@index([hotelId, roomTypeId, checkInDate, checkOutDate])
+  @@index([guestId])
+  @@map("reservations")
+}
+
+model PaymentRecord {
+  id             String      @id @default(uuid())
+  reservationId  String
+  amount         Float
+  currency       String      @default("USD")
+  status         String      // SUCCESS, FAILED, REFUNDED
+  idempotencyKey String      @unique
+  providerRef    String
+  createdAt      DateTime    @default(now())
+  reservation    Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@map("payment_records")
+}
