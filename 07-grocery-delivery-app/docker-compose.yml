@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cartly_grocery_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cartly_grocery_delivery_db
+    ports:
+      - "5438:5432"
+    volumes:
+      - grocery_pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: cartly_grocery_redis
+    restart: unless-stopped
+    ports:
+      - "6385:6379"
+    volumes:
+      - grocery_redisdata:/data
+
+volumes:
+  grocery_pgdata:
+  grocery_redisdata:
