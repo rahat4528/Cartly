@@ -21,7 +21,7 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
   const token = authHeader.split(' ')[1];
   try {
     const payload = authService.verifyToken(token);
-    req.user = payload;
+    req.user = payload as any;
     next();
   } catch (err: any) {
     return res.status(401).json({ error: err.message || 'Invalid token' });

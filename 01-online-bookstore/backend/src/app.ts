@@ -8,6 +8,7 @@ import { OrdersService } from './orders/orders.service.js';
 import { ReviewsService } from './reviews/reviews.service.js';
 import { InventoryService } from './inventory/inventory.service.js';
 import { AdminService } from './admin/admin.service.js';
+import { BookstoreStore } from './database/store.js';
 
 export function createApp() {
   const app = express();

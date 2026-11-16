@@ -66,6 +66,9 @@ export class SeatMatrixService {
     heldSeatsCount: number;
     bookedSeatsCount: number;
     matrix: Record<string, SeatInfo[]>;
+    seats: SeatInfo[];
+    rows: string[];
+    cols: number[];
   } {
     this.store.cleanupExpiredHolds();
 

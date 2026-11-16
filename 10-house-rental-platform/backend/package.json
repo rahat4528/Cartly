@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "House Rental Platform Backend API - Lease overlap protection, viewing mutex, tenant portal",
   "main": "dist/server.js",
-  "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
