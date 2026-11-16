@@ -1,0 +1,360 @@
+version: '3.8'
+
+# Cartly Root Orchestration Compose File
+# Allows spinning up core infrastructure across all 12 independent e-commerce & reservation apps
+# Each application has its dedicated PostgreSQL database, Redis cache, and application microservice.
+
+networks:
+  cartly_network:
+    driver: bridge
+
+services:
+  # Phase 01 - Online Bookstore
+  cartly_bookstore_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_bookstore_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bookstore_admin
+      POSTGRES_PASSWORD: bookstore_secret
+      POSTGRES_DB: cartly_bookstore
+    ports:
+      - "5432:5432"
+    volumes:
+      - bookstore_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_bookstore_redis:
+    image: redis:7-alpine
+    container_name: cartly_bookstore_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - bookstore_redisdata:/data
+    networks:
+      - cartly_network
+
+  # Phase 02 - Progressive Web App Store
+  cartly_pwa_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_pwa_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pwa_admin
+      POSTGRES_PASSWORD: pwa_secret
+      POSTGRES_DB: cartly_pwa_store
+    ports:
+      - "5433:5432"
+    volumes:
+      - pwa_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_pwa_redis:
+    image: redis:7-alpine
+    container_name: cartly_pwa_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - pwa_redisdata:/data
+    networks:
+      - cartly_network
+
+  # Phase 03 - Job Board Platform
+  cartly_jobboard_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_jobboard_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: jobboard_admin
+      POSTGRES_PASSWORD: jobboard_secret
+      POSTGRES_DB: cartly_job_board
+    ports:
+      - "5434:5432"
+    volumes:
+      - jobboard_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_jobboard_redis:
+    image: redis:7-alpine
+    container_name: cartly_jobboard_redis
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    volumes:
+      - jobboard_redisdata:/data
+    networks:
+      - cartly_network
+
+  # Phase 04 - Hotel Booking System
+  cartly_hotel_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_hotel_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hotel_admin
+      POSTGRES_PASSWORD: hotel_secret
+      POSTGRES_DB: cartly_hotel_booking
+    ports:
+      - "5435:5432"
+    volumes:
+      - hotel_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_hotel_redis:
+    image: redis:7-alpine
+    container_name: cartly_hotel_redis
+    restart: unless-stopped
+    ports:
+      - "6382:6379"
+    volumes:
+      - hotel_redisdata:/data
+    networks:
+      - cartly_network
+
+  # Phase 05 - Restaurant Reservation System
+  cartly_restaurant_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_restaurant_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: restaurant_admin
+      POSTGRES_PASSWORD: restaurant_secret
+      POSTGRES_DB: cartly_restaurant_reservation
+    ports:
+      - "5436:5432"
+    volumes:
+      - restaurant_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_restaurant_redis:
+    image: redis:7-alpine
+    container_name: cartly_restaurant_redis
+    restart: unless-stopped
+    ports:
+      - "6383:6379"
+    volumes:
+      - restaurant_redisdata:/data
+    networks:
+      - cartly_network
+
+  # Phase 06 - Movie Ticket Booking
+  cartly_movie_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_movie_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: movie_admin
+      POSTGRES_PASSWORD: movie_secret
+      POSTGRES_DB: cartly_movie_ticket
+    ports:
+      - "5437:5432"
+    volumes:
+      - movie_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_movie_redis:
+    image: redis:7-alpine
+    container_name: cartly_movie_redis
+    restart: unless-stopped
+    ports:
+      - "6384:6379"
+    volumes:
+      - movie_redisdata:/data
+    networks:
+      - cartly_network
+
+  # Phase 07 - Grocery Delivery App
+  cartly_grocery_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_grocery_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cartly_grocery_delivery_db
+    ports:
+      - "5438:5432"
+    volumes:
+      - grocery_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_grocery_redis:
+    image: redis:7-alpine
+    container_name: cartly_grocery_redis
+    restart: unless-stopped
+    ports:
+      - "6385:6379"
+    volumes:
+      - grocery_redisdata:/data
+    networks:
+      - cartly_network
+
+  # Phase 08 - Car Rental System
+  cartly_car_rental_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_car_rental_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cartly_car_rental_db
+    ports:
+      - "5439:5432"
+    volumes:
+      - car_rental_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_car_rental_redis:
+    image: redis:7-alpine
+    container_name: cartly_car_rental_redis
+    restart: unless-stopped
+    ports:
+      - "6386:6379"
+    volumes:
+      - car_rental_redisdata:/data
+    networks:
+      - cartly_network
+
+  # Phase 09 - Real Estate Listing Platform
+  cartly_real_estate_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_real_estate_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cartly_real_estate_db
+    ports:
+      - "5440:5432"
+    volumes:
+      - real_estate_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_real_estate_redis:
+    image: redis:7-alpine
+    container_name: cartly_real_estate_redis
+    restart: unless-stopped
+    ports:
+      - "6387:6379"
+    volumes:
+      - real_estate_redisdata:/data
+    networks:
+      - cartly_network
+
+  # Phase 10 - House Rental Platform
+  cartly_house_rental_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_house_rental_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cartly_house_rental_db
+    ports:
+      - "5441:5432"
+    volumes:
+      - house_rental_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_house_rental_redis:
+    image: redis:7-alpine
+    container_name: cartly_house_rental_redis
+    restart: unless-stopped
+    ports:
+      - "6388:6379"
+    volumes:
+      - house_rental_redisdata:/data
+    networks:
+      - cartly_network
+
+  # Phase 11 - Airbnb Clone
+  cartly_airbnb_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_airbnb_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cartly_airbnb_db
+    ports:
+      - "5443:5432"
+    volumes:
+      - airbnb_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_airbnb_redis:
+    image: redis:7-alpine
+    container_name: cartly_airbnb_redis
+    restart: unless-stopped
+    ports:
+      - "6390:6379"
+    volumes:
+      - airbnb_redisdata:/data
+    networks:
+      - cartly_network
+
+  # Phase 12 - Flight Booking System
+  cartly_flight_postgres:
+    image: postgres:16-alpine
+    container_name: cartly_flight_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cartly_flight_db
+    ports:
+      - "5444:5432"
+    volumes:
+      - flight_pgdata:/var/lib/postgresql/data
+    networks:
+      - cartly_network
+
+  cartly_flight_redis:
+    image: redis:7-alpine
+    container_name: cartly_flight_redis
+    restart: unless-stopped
+    ports:
+      - "6391:6379"
+    volumes:
+      - flight_redisdata:/data
+    networks:
+      - cartly_network
+
+volumes:
+  bookstore_pgdata:
+  bookstore_redisdata:
+  pwa_pgdata:
+  pwa_redisdata:
+  jobboard_pgdata:
+  jobboard_redisdata:
+  hotel_pgdata:
+  hotel_redisdata:
+  restaurant_pgdata:
+  restaurant_redisdata:
+  movie_pgdata:
+  movie_redisdata:
+  grocery_pgdata:
+  grocery_redisdata:
+  car_rental_pgdata:
+  car_rental_redisdata:
+  real_estate_pgdata:
+  real_estate_redisdata:
+  house_rental_pgdata:
+  house_rental_redisdata:
+  airbnb_pgdata:
+  airbnb_redisdata:
+  flight_pgdata:
+  flight_redisdata:
