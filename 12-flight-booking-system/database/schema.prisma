@@ -1,0 +1,93 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  PASSENGER
+  ADMIN
+}
+
+enum CabinClass {
+  ECONOMY
+  BUSINESS
+  FIRST
+}
+
+enum BookingStatus {
+  SEARCHED
+  PRICED
+  HELD
+  PAID
+  TICKETED
+  CANCELLED
+  EXPIRED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(PASSENGER)
+  createdAt    DateTime @default(now())
+
+  bookings Booking[]
+}
+
+model Airport {
+  code      String   @id // e.g. "SFO"
+  name      String
+  city      String
+  country   String
+  latitude  Float
+  longitude Float
+}
+
+model Flight {
+  id              String     @id @default(uuid())
+  flightNumber    String     // e.g. "CA-102"
+  airlineName     String     // "Cartly Airways"
+  aircraftModel   String     // "Boeing 787-9 Dreamliner"
+  originCode      String
+  destinationCode String
+  departureDate   String     // YYYY-MM-DD
+  departureTime   String     // HH:mm
+  arrivalDate     String     // YYYY-MM-DD
+  arrivalTime     String     // HH:mm
+  durationMinutes Int
+  economyCapacity Int
+  economyBooked   Int        @default(0)
+  economyPrice    Int
+  businessCapacity Int
+  businessBooked  Int        @default(0)
+  businessPrice   Int
+  isDemonstration Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  pnrLocator      String        @unique // e.g. "DEMO-7A8B9C"
+  userId          String
+  flightId        String
+  cabinClass      CabinClass
+  passengerCount  Int
+  baseFare        Int
+  carrierFees     Int
+  aviationTaxes   Int
+  totalAmount     Int
+  status          BookingStatus @default(HELD)
+  seatNumbers     String[]
+  passengersJson  String        // Serialized passenger records
+  isDemonstration Boolean       @default(true)
+  ticketUrl       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
