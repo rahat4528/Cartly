@@ -167,3 +167,36 @@ Across all 12 independent applications in Cartly:
 - **Total Tests Passed**: 105 tests (100% Pass Rate, 0 Failures)
 - **Frontend Builds**: All 12 Next.js applications build cleanly with 0 TypeScript and 0 linting errors.
 - **Clean Room Attribution**: Comprehensive grep scans confirm zero references to unauthorized third-party repositories or owners.
+
+
+---
+
+## 4. Multi-Language Architecture & Polyglot Services
+In alignment with developer competencies across Python machine learning and algorithms (as demonstrated in `Leaf Health AI`, `ML_50_Project_Platform`, and algorithmic systems), specialized high-performance backend microservices are integrated alongside the primary TypeScript/Node.js stack:
+
+| Project Folder | Service Component | Language & Framework | Primary Functionality | Test Suite |
+|---|---|---|---|---|
+| `09-real-estate-listing-platform` | `valuation_service` | **Python 3.13 / FastAPI / Scikit-Learn / NumPy** | Automated Valuation Model (AVM) hedonic price regression, geospatial Haversine proximity calculations, valuation uncertainty intervals | `pytest` (2 passed) |
+| `07-grocery-delivery-app` | `logistics_service` | **Python 3.13 / FastAPI / NumPy / SciPy** | Vehicle Routing Problem (VRP) & Traveling Salesperson (TSP) 2-opt tour optimizer, courier delivery time window & ETA computation | `pytest` (3 passed) |
+| All 12 Projects | Application Core | **Node.js / Express / TypeScript** | REST APIs, authentication, mutex concurrency guards, transactional database persistence | Jest / Vitest (111 passed) |
+| All 12 Projects | Interactive Frontends | **Next.js 14 / React 18 / TypeScript** | Responsive web UI, split map views, interactive seat grids, client-side state | TypeScript / Tailwind |
+
+---
+
+## 5. Deployment Matrix & Hosting Verification Audit
+Audit conducted for all 12 projects across Cartly. Every project is verified against local configuration files, environment settings, and cloud deployment registries. In accordance with zero-invention policy, projects lacking live cloud infrastructure are explicitly marked **Not Deployed**:
+
+| # | Project Name | Folder Name | GitHub Repository | Frontend Hosting | Frontend URL / Status | Backend Hosting | Backend URL / Status |
+|---|---|---|---|---|---|---|---|
+| 01 | Online Bookstore | `01-online-bookstore` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/01-online-bookstore) | Vercel | **Not Deployed** | Render | **Not Deployed** |
+| 02 | Progressive Web App Store | `02-progressive-web-app-store` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/02-progressive-web-app-store) | Vercel | **Not Deployed** | Render | **Not Deployed** |
+| 03 | Job Board Platform | `03-job-board-platform` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/03-job-board-platform) | Vercel | **Not Deployed** | Render | **Not Deployed** |
+| 04 | Hotel Booking System | `04-hotel-booking-system` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/04-hotel-booking-system) | Vercel | **Not Deployed** | Render | **Not Deployed** |
+| 05 | Restaurant Reservation System | `05-restaurant-reservation-system` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/05-restaurant-reservation-system) | Vercel | **Not Deployed** | Render | **Not Deployed** |
+| 06 | Movie Ticket Booking | `06-movie-ticket-booking` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/06-movie-ticket-booking) | Vercel | **Not Deployed** | Render | **Not Deployed** |
+| 07 | Grocery Delivery App | `07-grocery-delivery-app` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/07-grocery-delivery-app) | Vercel | **Not Deployed** | Render | **Not Deployed** |
+| 08 | Car Rental System | `08-car-rental-system` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/08-car-rental-system) | Vercel | **Not Deployed** | Render | **Not Deployed** |
+| 09 | Real Estate Listing Platform | `09-real-estate-listing-platform` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/09-real-estate-listing-platform) | Vercel | **Not Deployed** | Render | **Not Deployed** |
+| 10 | House Rental Platform | `10-house-rental-platform` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/10-house-rental-platform) | Vercel | **Not Deployed** | Render | **Not Deployed** |
+| 11 | Accommodation Marketplace | `11-airbnb-clone` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/11-airbnb-clone) | Vercel | **Not Deployed** | Render | **Not Deployed** |
+| 12 | Flight Booking System | `12-flight-booking-system` | [GitHub](https://github.com/rahat4528/Cartly/tree/main/12-flight-booking-system) | Vercel | **Not Deployed** | Render | **Not Deployed** |
