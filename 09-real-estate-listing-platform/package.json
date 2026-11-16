@@ -4,7 +4,8 @@
   "description": "Cartly Phase 09 - Real Estate Listing Platform",
   "private": true,
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run && python -m pytest valuation_service/test_valuation.py",
+    "test:python": "python -m pytest valuation_service/test_valuation.py",
     "test:watch": "vitest",
     "backend:dev": "npm --prefix backend run dev",
     "backend:test": "npm --prefix backend test",

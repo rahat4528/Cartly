@@ -23,6 +23,17 @@ services:
     volumes:
       - real_estate_redisdata:/data
 
+  valuation-service:
+    build:
+      context: ./valuation_service
+      dockerfile: Dockerfile
+    container_name: cartly_real_estate_valuation
+    ports:
+      - "8003:8003"
+    environment:
+      - PORT=8003
+    restart: unless-stopped
+
 volumes:
   real_estate_pgdata:
   real_estate_redisdata:
