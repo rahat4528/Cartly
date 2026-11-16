@@ -23,6 +23,17 @@ services:
     volumes:
       - grocery_redisdata:/data
 
+  logistics-service:
+    build:
+      context: ./logistics_service
+      dockerfile: Dockerfile
+    container_name: cartly_grocery_logistics
+    ports:
+      - "8004:8004"
+    environment:
+      - PORT=8004
+    restart: unless-stopped
+
 volumes:
   grocery_pgdata:
   grocery_redisdata:

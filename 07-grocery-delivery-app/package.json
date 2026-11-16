@@ -4,7 +4,8 @@
   "description": "Cartly Phase 07 - Grocery Delivery App",
   "private": true,
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run && python -m pytest logistics_service/test_logistics.py",
+    "test:python": "python -m pytest logistics_service/test_logistics.py",
     "test:watch": "vitest",
     "backend:dev": "npm --prefix backend run dev",
     "backend:test": "npm --prefix backend test",
