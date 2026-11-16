@@ -1,241 +1,289 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../lib/auth-context';
-import { Booking, Listing, fetchApi } from '../../lib/api';
-import { Navbar } from '../../components/Navbar';
-import {
-  Home,
-  PlusCircle,
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  Users,
-  CheckCircle,
-  X
+import { 
+  Building, Plus, Calendar, DollarSign, 
+  MapPin, CheckCircle2, AlertCircle, X, Users 
 } from 'lucide-react';
+import { apiRequest } from '../../lib/api';
+import { useAuth } from '../../lib/auth-context';
 
-export default function HostDashboard() {
-  const { user, token, quickSwitch } = useAuth();
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [hostBookings, setHostBookings] = useState<Booking[]>([]);
+export default function HostPortalPage() {
+  const { user } = useAuth();
+  const [hostBookings, setHostBookings] = useState<any[]>([]);
+  const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // New Listing Form
+  // New Listing Modal
   const [showAddModal, setShowAddModal] = useState(false);
-  const [form, setForm] = useState({
-    title: 'Modern Desert Dome with Stargazing Skylight',
-    description: 'Geodesic dome situated in serene Joshua Tree desert with panoramic dark-sky stargazing views.',
-    category: 'Countryside',
-    location: 'Joshua Tree, California, United States',
-    city: 'Joshua Tree',
-    country: 'United States',
-    latitude: 34.1347,
-    longitude: -116.3131,
-    nightlyRate: 275,
-    cleaningFee: 95,
-    maxGuests: 4,
-    bedrooms: 1,
-    beds: 2,
-    bathrooms: 1.0,
-    images: ['https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1200&q=80'],
-    amenities: ['Stargazing Skylight', 'Outdoor Fire Pit', 'AC', 'Wifi']
-  });
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('Beachfront');
+  const [location, setLocation] = useState('Carmel-by-the-Sea, California, United States');
+  const [city, setCity] = useState('Carmel');
+  const [nightlyRate, setNightlyRate] = useState('420');
+  const [cleaningFee, setCleaningFee] = useState('150');
+  const [maxGuests, setMaxGuests] = useState('4');
+  const [submittingListing, setSubmittingListing] = useState(false);
 
-  const loadData = async () => {
-    if (!token) return;
+  useEffect(() => {
+    fetchHostData();
+  }, [user]);
+
+  const fetchHostData = async () => {
     try {
       setLoading(true);
-      const lData = await fetchApi('/listings');
-      setListings(lData.listings || []);
-
-      const bData = await fetchApi('/host/bookings', {}, token);
-      setHostBookings(bData.bookings || []);
+      const [bookingsData, listingsData] = await Promise.all([
+        apiRequest('/bookings/host').catch(() => []),
+        apiRequest('/listings').catch(() => [])
+      ]);
+      setHostBookings(bookingsData);
+      setListings(listingsData);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load host portal data', err);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (user?.role !== 'HOST') {
-      quickSwitch('HOST');
-    }
-    loadData();
-  }, [token, user?.role]);
-
   const handleCreateListing = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    setSubmittingListing(true);
 
     try {
-      await fetchApi(
-        '/listings',
-        {
-          method: 'POST',
-          body: JSON.stringify(form)
-        },
-        token
-      );
+      await apiRequest('/listings', {
+        method: 'POST',
+        body: JSON.stringify({
+          title,
+          description,
+          category,
+          location,
+          city,
+          country: 'United States',
+          latitude: 36.5552,
+          longitude: -121.9233,
+          nightlyRate: parseInt(nightlyRate, 10),
+          cleaningFee: parseInt(cleaningFee, 10),
+          maxGuests: parseInt(maxGuests, 10),
+          bedrooms: 2,
+          beds: 2,
+          bathrooms: 2.0,
+          images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80'],
+          amenities: ['Fast Wifi', 'Chef Kitchen', 'Scenic Views', 'EV Charger']
+        })
+      });
+
       setShowAddModal(false);
-      loadData();
+      setTitle('');
+      setDescription('');
+      fetchHostData();
+      alert('Listing created and published to marketplace!');
     } catch (err: any) {
-      alert(err.message || 'Failed to publish listing');
+      alert(err.message || 'Error creating listing');
+    } finally {
+      setSubmittingListing(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-800">
-      <Navbar />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl border border-neutral-200 shadow-xs">
-          <div>
-            <h1 className="text-2xl font-black text-neutral-900 flex items-center gap-2">
-              <Home className="w-7 h-7 text-rose-500" />
-              <span>Host Management Center</span>
-            </h1>
-            <p className="text-xs text-neutral-500 mt-1">Manage vacation properties, monitor confirmed guest stays, and review payouts.</p>
-          </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="px-4 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl text-xs font-bold transition flex items-center gap-2 shadow-xs"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Create New Listing</span>
-          </button>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 mb-6 border-b border-neutral-200">
+        <div>
+          <h1 className="text-2xl font-extrabold text-neutral-900 tracking-tight">Host Management Console</h1>
+          <p className="text-xs text-neutral-500 mt-1">
+            Manage your vacation rental listings, monitor guest arrivals, and track booking revenue.
+          </p>
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-3xl border border-neutral-200 shadow-xs">
-            <span className="text-xs font-bold uppercase text-neutral-400">Total Listings</span>
-            <p className="text-3xl font-black text-neutral-900 mt-2">{listings.length}</p>
-          </div>
-          <div className="bg-white p-6 rounded-3xl border border-neutral-200 shadow-xs">
-            <span className="text-xs font-bold uppercase text-neutral-400">Guest Bookings</span>
-            <p className="text-3xl font-black text-neutral-900 mt-2">{hostBookings.length}</p>
-          </div>
-          <div className="bg-white p-6 rounded-3xl border border-neutral-200 shadow-xs">
-            <span className="text-xs font-bold uppercase text-neutral-400">Gross Reservation Volume</span>
-            <p className="text-3xl font-black text-emerald-600 mt-2">
-              ${hostBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0).toLocaleString()}
-            </p>
-          </div>
-        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="mt-4 md:mt-0 px-4 py-2 bg-neutral-900 text-white rounded-xl text-xs font-bold hover:bg-neutral-800 transition flex items-center gap-1.5 shadow-sm"
+        >
+          <Plus className="h-4 w-4" />
+          Create New Listing
+        </button>
+      </div>
 
-        {/* Guest Reservations Queue */}
-        <div className="bg-white rounded-3xl border border-neutral-200 p-6 shadow-xs space-y-4">
-          <h2 className="text-lg font-bold text-neutral-900">Incoming Guest Reservations</h2>
-          {hostBookings.length === 0 ? (
-            <p className="text-xs text-neutral-400 py-4">No reservations booked on your listings yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {hostBookings.map(b => (
-                <div key={b.id} className="p-4 border border-neutral-100 rounded-2xl bg-neutral-50 flex justify-between items-center">
-                  <div>
-                    <span className="font-bold text-sm text-neutral-800">{b.listingTitle || b.listingId}</span>
-                    <p className="text-xs text-neutral-500">{b.checkIn} → {b.checkOut} ({b.nightsCount} nights) • {b.guestCount} guests</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-black text-sm text-neutral-900">${b.totalPrice.toLocaleString()}</span>
-                    <span className={`block text-[10px] font-bold uppercase mt-0.5 ${
-                      b.status === 'CONFIRMED' ? 'text-emerald-600' : 'text-neutral-500'
-                    }`}>
-                      {b.status}
+      {loading ? (
+        <div className="py-24 text-center text-neutral-400 font-medium">Loading host console...</div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left: Your Properties */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm">
+              <h2 className="text-base font-extrabold text-neutral-900 mb-4 flex items-center gap-2">
+                <Building className="h-4 w-4 text-rose-500" />
+                Active Vacation Listings
+              </h2>
+
+              <div className="divide-y divide-neutral-100">
+                {listings.map((l) => (
+                  <div key={l.id} className="py-4 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="w-16 h-16 rounded-xl bg-neutral-100 overflow-hidden shrink-0">
+                        <img
+                          src={l.images[0] || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=300'}
+                          alt={l.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-neutral-900 text-sm line-clamp-1">{l.title}</h3>
+                        <p className="text-neutral-500">{l.city}, {l.country} &bull; {l.category}</p>
+                        <p className="font-semibold text-neutral-800 mt-0.5">${l.nightlyRate}/night &bull; ${l.cleaningFee} cleaning</p>
+                      </div>
+                    </div>
+
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase">
+                      Published
                     </span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* Right: Guest Reservations */}
+          <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm h-fit">
+            <h2 className="text-base font-extrabold text-neutral-900 mb-4 flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-rose-500" />
+              Recent Guest Bookings
+            </h2>
+
+            {hostBookings.length === 0 ? (
+              <p className="text-xs text-neutral-400 py-6 text-center">No reservations received yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {hostBookings.map((b) => (
+                  <div key={b.id} className="p-3 bg-neutral-50 rounded-xl border border-neutral-200 text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-neutral-900">Reservation #{b.id.substring(0, 8)}</span>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                        b.status === 'CONFIRMED' ? 'bg-emerald-100 text-emerald-800' : 'bg-neutral-200 text-neutral-700'
+                      }`}>
+                        {b.status}
+                      </span>
+                    </div>
+                    <p className="text-neutral-500 text-[11px] mb-1">
+                      {b.checkIn} &rarr; {b.checkOut} ({b.nightsCount} nights)
+                    </p>
+                    <div className="flex items-center justify-between font-semibold text-neutral-800 text-[11px] pt-1 border-t border-neutral-200">
+                      <span>Payout Subtotal</span>
+                      <span>${b.baseSubtotal.toLocaleString()} USD</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </main>
+      )}
 
       {/* Add Listing Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5">
-            <div className="flex justify-between items-center border-b pb-3">
-              <h3 className="text-lg font-bold text-neutral-900">Publish Vacation Listing</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-neutral-400 hover:text-neutral-600">✕</button>
-            </div>
+        <div className="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-neutral-200 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-base font-bold text-neutral-900 mb-1">Onboard New Vacation Rental</h2>
+            <p className="text-xs text-neutral-500 mb-4">Publish your property to travelers worldwide.</p>
 
-            <form onSubmit={handleCreateListing} className="space-y-4">
+            <form onSubmit={handleCreateListing} className="space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-semibold text-neutral-600 mb-1">Listing Title</label>
+                <label className="block font-bold text-neutral-700 mb-1">Property Title</label>
                 <input
                   type="text"
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs focus:outline-rose-500"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Modern Glass Oceanfront Villa"
                   required
+                  className="w-full text-xs border border-neutral-300 rounded-xl px-3 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-neutral-700 mb-1">Description</label>
+                <textarea
+                  rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe architecture, scenic features, and amenities..."
+                  required
+                  className="w-full text-xs border border-neutral-300 rounded-xl px-3 py-2"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-600 mb-1">Category</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Category</label>
                   <select
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs focus:outline-rose-500"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full text-xs border border-neutral-300 rounded-xl px-3 py-2 bg-white"
                   >
                     <option value="Beachfront">Beachfront</option>
                     <option value="Cabins">Cabins</option>
                     <option value="Iconic Cities">Iconic Cities</option>
-                    <option value="Countryside">Countryside</option>
+                    <option value="Desert">Desert</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-600 mb-1">City</label>
+                  <label className="block font-bold text-neutral-700 mb-1">City</label>
                   <input
                     type="text"
-                    value={form.city}
-                    onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs focus:outline-rose-500"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
                     required
+                    className="w-full text-xs border border-neutral-300 rounded-xl px-3 py-2"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-600 mb-1">Nightly Rate ($)</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Nightly ($)</label>
                   <input
                     type="number"
-                    value={form.nightlyRate}
-                    onChange={(e) => setForm({ ...form, nightlyRate: Number(e.target.value) })}
-                    className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs focus:outline-rose-500"
+                    value={nightlyRate}
+                    onChange={(e) => setNightlyRate(e.target.value)}
                     required
+                    className="w-full text-xs border border-neutral-300 rounded-xl px-3 py-2"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-600 mb-1">Cleaning Fee ($)</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Cleaning ($)</label>
                   <input
                     type="number"
-                    value={form.cleaningFee}
-                    onChange={(e) => setForm({ ...form, cleaningFee: Number(e.target.value) })}
-                    className="w-full border border-neutral-300 rounded-xl px-3 py-2 text-xs focus:outline-rose-500"
+                    value={cleaningFee}
+                    onChange={(e) => setCleaningFee(e.target.value)}
                     required
+                    className="w-full text-xs border border-neutral-300 rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-neutral-700 mb-1">Max Guests</label>
+                  <input
+                    type="number"
+                    value={maxGuests}
+                    onChange={(e) => setMaxGuests(e.target.value)}
+                    required
+                    className="w-full text-xs border border-neutral-300 rounded-xl px-3 py-2"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 border border-neutral-300 text-neutral-700 text-xs font-semibold rounded-xl hover:bg-neutral-50"
+                  className="flex-1 py-2 font-semibold text-neutral-600 border border-neutral-300 rounded-xl hover:bg-neutral-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold rounded-xl shadow-xs"
+                  disabled={submittingListing}
+                  className="flex-1 py-2 font-bold text-white bg-neutral-900 rounded-xl hover:bg-neutral-800 disabled:opacity-50"
                 >
-                  Publish Accommodation
+                  {submittingListing ? 'Creating...' : 'Publish Listing'}
                 </button>
               </div>
             </form>

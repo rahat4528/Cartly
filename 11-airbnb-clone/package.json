@@ -1,12 +1,18 @@
 {
   "name": "11-airbnb-clone",
   "version": "1.0.0",
+  "description": "Short-Stay Accommodation Marketplace (Airbnb Clone)",
   "private": true,
   "scripts": {
-    "dev:backend": "npm --prefix backend run dev",
-    "dev:frontend": "npm --prefix frontend run dev",
-    "build:backend": "npm --prefix backend run build",
-    "build:frontend": "npm --prefix frontend run build",
-    "test": "npm --prefix backend run test"
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/supertest": "^6.0.2",
+    "supertest": "^6.3.4",
+    "vitest": "^1.6.0"
   }
 }

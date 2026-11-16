@@ -1,65 +1,67 @@
+import { store, Listing } from '../database/store';
 import { v4 as uuidv4 } from 'uuid';
-import { AirbnbStore, Listing } from '../database/store.js';
+
+export interface ListingFilter {
+  category?: string;
+  city?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  guests?: number;
+}
 
 export class ListingsService {
-  private store = AirbnbStore.getInstance();
-
-  public getListings(filters?: {
-    category?: string;
-    city?: string;
-    guests?: number;
-    checkIn?: string;
-    checkOut?: string;
-  }): Listing[] {
-    let result = this.store.listings;
-
-    if (filters?.category && filters.category !== 'All') {
-      result = result.filter(l => l.category.toLowerCase() === filters.category!.toLowerCase());
-    }
-
-    if (filters?.city) {
-      const c = filters.city.toLowerCase();
-      result = result.filter(l => l.city.toLowerCase().includes(c) || l.location.toLowerCase().includes(c));
-    }
-
-    if (filters?.guests) {
-      const g = Number(filters.guests);
-      result = result.filter(l => l.maxGuests >= g);
-    }
-
-    if (filters?.checkIn && filters?.checkOut) {
-      result = result.filter(l => !this.store.hasBookingOverlap(l.id, filters.checkIn!, filters.checkOut!));
-    }
-
-    return result;
+  static getListings(filters: ListingFilter = {}): Listing[] {
+    return store.listings.filter(listing => {
+      if (filters.category && filters.category !== 'All' && listing.category !== filters.category) {
+        return false;
+      }
+      if (filters.city && !listing.city.toLowerCase().includes(filters.city.toLowerCase()) && !listing.location.toLowerCase().includes(filters.city.toLowerCase())) {
+        return false;
+      }
+      if (filters.minPrice && listing.nightlyRate < filters.minPrice) {
+        return false;
+      }
+      if (filters.maxPrice && listing.nightlyRate > filters.maxPrice) {
+        return false;
+      }
+      if (filters.guests && listing.maxGuests < filters.guests) {
+        return false;
+      }
+      return true;
+    });
   }
 
-  public getListingById(id: string): Listing | undefined {
-    return this.store.listings.find(l => l.id === id);
+  static getListingById(id: string): Listing | null {
+    return store.listings.find(l => l.id === id) || null;
   }
 
-  public createListing(data: Omit<Listing, 'id'>, hostId: string): Listing {
+  static createListing(hostId: string, data: Omit<Listing, 'id' | 'hostId' | 'createdAt' | 'updatedAt'>): Listing {
     const listing: Listing = {
-      id: `list_${uuidv4().substring(0, 8)}`,
       ...data,
-      hostId
+      id: `list_${uuidv4().substring(0, 8)}`,
+      hostId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
-    this.store.listings.push(listing);
+    store.listings.push(listing);
     return listing;
   }
 
-  public updateListing(id: string, updates: Partial<Listing>, hostId: string): Listing {
-    const listing = this.store.listings.find(l => l.id === id);
-    if (!listing) {
-      throw new Error('Listing not found');
-    }
-    if (listing.hostId !== hostId) {
-      const err = new Error('You do not have permission to modify this listing');
+  static updateListing(listingId: string, hostId: string, updates: Partial<Listing>, isAdmin: boolean = false): Listing {
+    const listing = store.listings.find(l => l.id === listingId);
+    if (!listing) throw new Error('Listing not found');
+
+    if (!isAdmin && listing.hostId !== hostId) {
+      const err = new Error('Forbidden: You do not own this accommodation listing');
       (err as any).statusCode = 403;
       throw err;
     }
 
-    Object.assign(listing, updates);
+    Object.assign(listing, updates, { updatedAt: new Date().toISOString() });
     return listing;
+  }
+
+  static getHostListings(hostId: string): Listing[] {
+    return store.listings.filter(l => l.hostId === hostId);
   }
 }

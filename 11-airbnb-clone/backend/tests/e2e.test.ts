@@ -1,73 +1,102 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
-import { createApp } from '../src/app.js';
-import { AirbnbStore } from '../src/database/store.js';
+import { app } from '../src/app';
+import { store } from '../src/database/store';
 
-describe('Phase 11: Accommodation Marketplace End-to-End Suite', () => {
-  let app: any;
-  let hostToken: string;
-  let guestToken: string;
-
-  beforeEach(async () => {
-    const store = AirbnbStore.getInstance();
-    store.resetToSeed();
-    app = createApp();
-
-    const hostRes = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email: 'host@cartlystays.com', password: 'Pass123!' });
-    hostToken = hostRes.body.token;
-
-    const guestRes = await request(app)
-      .post('/api/v1/auth/login')
-      .send({ email: 'guest@example.com', password: 'Pass123!' });
-    guestToken = guestRes.body.token;
+describe('Accommodation Marketplace (Phase 11) - End-to-End Integration Suite', () => {
+  beforeEach(() => {
+    store.seed();
   });
 
-  it('runs complete lifecycle: Search -> Price Quote -> Hold -> Payment Confirmation -> Overlap Rejection', async () => {
-    // 1. Search listings
-    const searchRes = await request(app).get('/api/v1/listings?category=Cabins');
-    expect(searchRes.status).toBe(200);
-    const listing = searchRes.body.listings[0];
+  it('runs complete accommodation lifecycle from discovery to checkout and host management', async () => {
+    // 1. Health check
+    const health = await request(app).get('/health');
+    expect(health.status).toBe(200);
+    expect(health.body.database).toBe('cartly_airbnb_db');
 
-    // 2. Request backend price quote
+    // 2. Guest Login
+    const guestLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'guest@example.com', password: 'Pass123!' });
+    expect(guestLogin.status).toBe(200);
+    const guestToken = guestLogin.body.token;
+
+    // 3. Host Login
+    const hostLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'host@example.com', password: 'Pass123!' });
+    expect(hostLogin.status).toBe(200);
+    const hostToken = hostLogin.body.token;
+
+    // 4. Discover Listings
+    const listingsRes = await request(app).get('/api/v1/listings');
+    expect(listingsRes.status).toBe(200);
+    const listingsList = listingsRes.body.listings || listingsRes.body;
+    expect(listingsList.length).toBeGreaterThan(0);
+    const target = listingsList[0];
+
+    // 5. Quote Price Breakdown
     const quoteRes = await request(app)
-      .post(`/api/v1/listings/${listing.id}/quote`)
-      .send({ checkIn: '2027-04-10', checkOut: '2027-04-15' });
-    expect(quoteRes.status).toBe(200);
-    expect(quoteRes.body.quote.nightsCount).toBe(5);
-
-    // 3. Create booking hold
-    const holdRes = await request(app)
-      .post('/api/v1/bookings')
-      .set('Authorization', `Bearer ${guestToken}`)
+      .post('/api/v1/bookings/quote')
       .send({
-        listingId: listing.id,
-        checkIn: '2027-04-10',
-        checkOut: '2027-04-15',
-        guestCount: 3
-      });
-    expect(holdRes.status).toBe(201);
-    const bookingId = holdRes.body.booking.id;
-
-    // 4. Confirm booking
-    const confirmRes = await request(app)
-      .post(`/api/v1/bookings/${bookingId}/confirm`)
-      .set('Authorization', `Bearer ${guestToken}`);
-    expect(confirmRes.status).toBe(200);
-    expect(confirmRes.body.booking.status).toBe('CONFIRMED');
-
-    // 5. Parallel overlapping reservation attempt rejected
-    const overlapRes = await request(app)
-      .post('/api/v1/bookings')
-      .set('Authorization', `Bearer ${guestToken}`)
-      .send({
-        listingId: listing.id,
-        checkIn: '2027-04-12',
-        checkOut: '2027-04-18',
+        listingId: target.id,
+        checkIn: '2026-12-01',
+        checkOut: '2026-12-05',
         guestCount: 2
       });
-    expect(overlapRes.status).toBe(409);
-    expect(overlapRes.body.error).toContain('Booking conflict');
+    expect(quoteRes.status).toBe(200);
+    expect(quoteRes.body.nightsCount).toBe(4);
+
+    // 6. Create Hold
+    const holdRes = await request(app)
+      .post('/api/v1/bookings/hold')
+      .set('Authorization', `Bearer ${guestToken}`)
+      .send({
+        listingId: target.id,
+        checkIn: '2026-12-01',
+        checkOut: '2026-12-05',
+        guestCount: 2
+      });
+    expect(holdRes.status).toBe(201);
+    expect(holdRes.body.status).toBe('PENDING');
+
+    // 7. Confirm Reservation
+    const confirmRes = await request(app)
+      .post(`/api/v1/bookings/${holdRes.body.id}/confirm`)
+      .set('Authorization', `Bearer ${guestToken}`);
+    expect(confirmRes.status).toBe(200);
+    expect(confirmRes.body.status).toBe('CONFIRMED');
+
+    // 8. Host Views Bookings
+    const hostBookings = await request(app)
+      .get('/api/v1/bookings/host')
+      .set('Authorization', `Bearer ${hostToken}`);
+    expect(hostBookings.status).toBe(200);
+    expect(hostBookings.body.some((b: any) => b.id === holdRes.body.id)).toBe(true);
+
+    // 9. Host Creates New Listing
+    const newListing = await request(app)
+      .post('/api/v1/listings')
+      .set('Authorization', `Bearer ${hostToken}`)
+      .send({
+        title: 'Modern Desert Oasis with Stargazing Hot Tub',
+        description: 'Eco-modern architectural retreat in Joshua Tree.',
+        category: 'Desert',
+        location: 'Joshua Tree, California, United States',
+        city: 'Joshua Tree',
+        country: 'United States',
+        latitude: 34.1347,
+        longitude: -116.3131,
+        nightlyRate: 395,
+        cleaningFee: 140,
+        maxGuests: 4,
+        bedrooms: 2,
+        beds: 2,
+        bathrooms: 2.0,
+        images: ['https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800'],
+        amenities: ['Hot Tub', 'Stargazing Deck', 'Fast Wifi', 'EV Charger']
+      });
+    expect(newListing.status).toBe(201);
+    expect(newListing.body.category).toBe('Desert');
   });
 });

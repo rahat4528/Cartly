@@ -1,43 +1,49 @@
-import { AirbnbStore, Review } from '../database/store.js';
+import { store, Review } from '../database/store';
+import { v4 as uuidv4 } from 'uuid';
 
 export class ReviewsService {
-  private store = AirbnbStore.getInstance();
+  static createReview(
+    guestId: string,
+    listingId: string,
+    rating: number,
+    comment: string
+  ): Review {
+    if (rating < 1 || rating > 5) {
+      throw new Error('Rating must be between 1 and 5 stars');
+    }
 
-  public getReviewsForListing(listingId: string): Review[] {
-    return this.store.reviews.filter(r => r.listingId === listingId);
-  }
+    if (!comment || comment.trim().length < 5) {
+      throw new Error('Review comment must be at least 5 characters');
+    }
 
-  public addReview(listingId: string, guestId: string, guestName: string, rating: number, comment: string): Review {
-    // Gate: guest must have a completed booking on this listing
-    const hasCompletedStay = this.store.bookings.some(
+    // Review Verification Gate: Guest MUST have a COMPLETED booking on this listing
+    const completedStay = store.bookings.find(
       b => b.listingId === listingId && b.guestId === guestId && b.status === 'COMPLETED'
     );
 
-    if (!hasCompletedStay) {
-      const err = new Error('Review prohibited: verified reviews are permitted only following a completed stay');
+    if (!completedStay) {
+      const err = new Error('Forbidden: verified reviews are permitted only following a completed stay');
       (err as any).statusCode = 403;
       throw err;
     }
 
-    // Gate: single review per stay
-    const existing = this.store.reviews.find(r => r.listingId === listingId && r.guestId === guestId);
-    if (existing) {
-      const err = new Error('A review has already been submitted for this stay');
-      (err as any).statusCode = 409;
-      throw err;
-    }
+    const guest = store.users.find(u => u.id === guestId);
 
     const review: Review = {
-      id: `rev_${Date.now()}`,
+      id: `rev_${uuidv4().substring(0, 8)}`,
       listingId,
       guestId,
-      guestName,
+      guestName: guest?.name || 'Verified Traveler',
       rating,
       comment,
       createdAt: new Date().toISOString()
     };
 
-    this.store.reviews.push(review);
+    store.reviews.push(review);
     return review;
+  }
+
+  static getListingReviews(listingId: string): Review[] {
+    return store.reviews.filter(r => r.listingId === listingId);
   }
 }

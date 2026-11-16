@@ -1,32 +1,32 @@
 import jwt from 'jsonwebtoken';
-import { AirbnbStore, User } from '../database/store.js';
+import bcrypt from 'bcryptjs';
+import { store, User } from '../database/store';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secure-cartly-airbnb-jwt-secret-key-2026';
 
 export class AuthService {
-  private store = AirbnbStore.getInstance();
+  static login(email: string, password: string): { token: string; user: Omit<User, 'passwordHash'> } | null {
+    const user = store.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (!user) return null;
 
-  public login(email: string, passwordPlain: string): { user: Omit<User, 'passwordHash'>; token: string } {
-    const user = this.store.users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (!user) {
-      throw new Error('Invalid email or password');
-    }
-
-    if (passwordPlain !== 'Pass123!') {
-      throw new Error('Invalid email or password');
-    }
+    const isValid = bcrypt.compareSync(password, user.passwordHash);
+    if (!isValid) return null;
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, name: user.name },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '24h' }
     );
 
     const { passwordHash, ...safeUser } = user;
-    return { user: safeUser, token };
+    return { token, user: safeUser };
   }
 
-  public verifyToken(token: string): any {
-    return jwt.verify(token, JWT_SECRET);
+  static verifyToken(token: string): any {
+    try {
+      return jwt.verify(token, JWT_SECRET);
+    } catch {
+      return null;
+    }
   }
 }

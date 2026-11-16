@@ -1,8 +1,7 @@
-import { createApp } from './app.js';
+import { app } from './app';
 
 const PORT = process.env.PORT || 5011;
-const app = createApp();
 
 app.listen(PORT, () => {
-  console.log(`🏖️ Cartly Accommodation Marketplace (Airbnb Clone) Backend running on port ${PORT}`);
+  console.log(`Accommodation Marketplace Backend running on port ${PORT}`);
 });

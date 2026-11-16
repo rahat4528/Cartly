@@ -1,90 +1,35 @@
-# Accommodation Marketplace (Airbnb Clone - Phase 11)
+# Airbnb Clone - Short-Stay Accommodation Marketplace
 
-A short-stay vacation accommodation marketplace connecting hosts and travelers, featuring category filtering, wishlist toggles, server-authoritative price breakdown snapshots (nightly rate, cleaning fee, 12% marketplace fee, 10% local taxes), 10-minute temporary reservation holds, strict date-range overlap exclusion locking, and post-stay verified guest reviews.
+Independent vacation rental and accommodation marketplace engineered as Phase 11 of the Cartly repository.
 
----
+## Capabilities
+- **Photo-First Stays Catalog**: Search across categories (Beachfront, Cabins, Iconic Cities) with destination city filters.
+- **Server Price Authority**: Backend fee recalculation computing base stay, cleaning fee, 12% service fee, and 10% municipality taxes.
+- **Date-Range Overlap Locking**: Strict concurrency mutex preventing double-booking of any date span (`409 Conflict`).
+- **Temporary Hold Lifecycle**: 10-minute hold reservation with automatic expiration sweeping.
+- **Review Gating Gate**: Verified stay completion check (`COMPLETED`) required before submitting reviews (`403 Forbidden` for unverified attempts).
+- **Host Dashboard**: Onboard new properties with photo galleries, pricing tiers, and monitor reservations.
 
-## Architecture Overview
+## Ports & Services
+- **Backend API**: Port 5011
+- **Frontend Next.js**: Port 3011
+- **PostgreSQL**: Port 5443 (`cartly_airbnb_db`)
+- **Redis**: Port 6390 (`cartly-airbnb-redis`)
 
-```
-                      ┌───────────────────────────────────────────────┐
-                      │              CartlyStays UI                   │
-                      │   (Next.js 14 App Router, Rose Theme)         │
-                      └──────────────────────┬────────────────────────┘
-                                             │ REST / JSON
-                                             ▼
-                      ┌───────────────────────────────────────────────┐
-                      │               Express Backend                 │
-                      │  - Date-Range Overlap Mutex Engine            │
-                      │  - Authoritative Pricing & Tax Calculator     │
-                      │  - 10-Minute Hold Expiration Sweeper          │
-                      │  - Verified Post-Checkout Review Gate         │
-                      │  - Host Listing & Revenue Management          │
-                      └──────────────────────┬────────────────────────┘
-                                             │
-                      ┌──────────────────────┴────────────────────────┐
-                      │ PostgreSQL (cartly_airbnb_db) & Redis Cache   │
-                      └───────────────────────────────────────────────┘
-```
-
----
-
-## Key Features
-
-1. **Date-Range Overlap Exclusion Mutex**:
-   - Confirmed stays and active reservation holds enforce exclusive occupancy for specified calendar spans (`reqCheckIn < bCheckOut && reqCheckOut > bCheckIn`).
-   - Conflicting concurrent requests are rejected with `409 Conflict: Booking conflict: the selected dates are unavailable for this listing`.
-2. **Authoritative Backend Pricing Authority**:
-   - Client requests cannot alter or specify rates.
-   - Computes base accommodation costs, cleaning fee, 12% platform service fee, and 10% local occupancy taxes, permanently recording an immutable price snapshot on the booking.
-3. **10-Minute Reservation Hold & Timeout**:
-   - Creates a temporary reservation lock for 10 minutes allowing the traveler to review checkout details.
-   - Holds not confirmed within 10 minutes transition to `EXPIRED` (preventing stale slot locking).
-4. **Verified Post-Stay Review Gate**:
-   - Reviews are strictly gated to travelers who completed a verified stay (`status: COMPLETED`). Unverified submissions return `403 Forbidden`.
-5. **Host Operations Center**:
-   - Hosts publish listings, configure amenities, review incoming reservations, and monitor gross booking volume.
-
----
-
-## Technical Stack
-
-- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS, Lucide Icons.
-- **Backend**: Express.js, TypeScript, CORS, JWT, Bcrypt.
-- **Database**: PostgreSQL (`cartly_airbnb_db`), Redis cache.
-- **Testing**: Vitest, Supertest.
-
----
-
-## API Endpoints
-
-### Authentication
-- `POST /api/v1/auth/login` - Authenticate guest or host.
-- `GET /api/v1/auth/me` - Current session and persona.
-
-### Listings
-- `GET /api/v1/listings` - Search vacation rentals by category, city, guest count, and dates.
-- `GET /api/v1/listings/:id` - Detailed property information and verified reviews.
-- `POST /api/v1/listings` - Host publishes new accommodation listing.
-- `PUT /api/v1/listings/:id` - Host updates property parameters.
-
-### Quotes & Bookings
-- `POST /api/v1/listings/:id/quote` - Calculate server-authoritative price breakdown.
-- `POST /api/v1/bookings` - Create 10-minute reservation hold (date-overlap mutex check).
-- `POST /api/v1/bookings/:id/confirm` - Pay and confirm reservation hold.
-- `POST /api/v1/bookings/:id/cancel` - Cancel stay with policy refund calculation.
-- `GET /api/v1/bookings/my` - Guest reservations tracker.
-- `GET /api/v1/host/bookings` - Host incoming reservation queue.
-
-### Reviews
-- `POST /api/v1/listings/:id/reviews` - Submit post-stay review (verified stay gate).
-
----
-
-## Verification & Testing
+## Quickstart
 
 ```bash
-cd backend
+# 1. Environment
+cp .env.example .env
+
+# 2. Containers
+docker compose up -d
+
+# 3. Dependencies
+npm install
+cd backend && npm install
+cd ../frontend && npm install
+
+# 4. Run tests
 npm test
 ```
-Runs 7 tests across 2 test suites validating category search, server pricing accuracy, date collision locks, hold timeout mechanisms, and post-stay review eligibility gates.

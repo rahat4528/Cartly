@@ -1,8 +1,11 @@
-import { Listing } from '../database/store.js';
+import { Listing } from '../database/store';
 
 export interface PriceBreakdown {
-  nightlyRate: number;
+  checkIn: string;
+  checkOut: string;
   nightsCount: number;
+  guestCount: number;
+  nightlyRate: number;
   baseSubtotal: number;
   cleaningFee: number;
   serviceFee: number;
@@ -11,33 +14,36 @@ export interface PriceBreakdown {
 }
 
 export class PricingService {
-  public calculatePrice(listing: Listing, checkIn: string, checkOut: string): PriceBreakdown {
+  static calculatePrice(
+    listing: Listing,
+    checkIn: string,
+    checkOut: string,
+    guestCount: number = 1
+  ): PriceBreakdown {
     const start = new Date(checkIn).getTime();
     const end = new Date(checkOut).getTime();
 
-    if (start >= end) {
-      const err = new Error('Check-out date must be strictly after check-in date');
-      (err as any).statusCode = 400;
-      throw err;
+    if (isNaN(start) || isNaN(end) || end <= start) {
+      throw new Error('Invalid date span: checkOut must be strictly after checkIn');
     }
 
-    const diffDays = Math.round((end - start) / (1000 * 60 * 60 * 24));
-    if (diffDays < 1) {
-      const err = new Error('Reservation must be at least 1 night');
-      (err as any).statusCode = 400;
-      throw err;
+    const nightsCount = Math.round((end - start) / (1000 * 60 * 60 * 24));
+    if (nightsCount < 1) {
+      throw new Error('Minimum stay is 1 night');
     }
 
-    const nightlyRate = listing.nightlyRate;
-    const baseSubtotal = diffDays * nightlyRate;
+    const baseSubtotal = nightsCount * listing.nightlyRate;
     const cleaningFee = listing.cleaningFee;
-    const serviceFee = Math.round(baseSubtotal * 0.12); // 12% marketplace service fee
-    const occupancyTax = Math.round((baseSubtotal + cleaningFee) * 0.10); // 10% occupancy tax
+    const serviceFee = Math.round(baseSubtotal * 0.12); // 12% platform guest service fee
+    const occupancyTax = Math.round((baseSubtotal + cleaningFee) * 0.10); // 10% tax on stay + cleaning
     const totalPrice = baseSubtotal + cleaningFee + serviceFee + occupancyTax;
 
     return {
-      nightlyRate,
-      nightsCount: diffDays,
+      checkIn,
+      checkOut,
+      nightsCount,
+      guestCount,
+      nightlyRate: listing.nightlyRate,
       baseSubtotal,
       cleaningFee,
       serviceFee,

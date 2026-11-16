@@ -1,7 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthService } from './auth.service.js';
-
-const authService = new AuthService();
+import { AuthService } from './auth.service';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -12,33 +10,26 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Authentication token required' });
-    return;
-  }
+export function authGuard(roles?: Array<'GUEST' | 'HOST' | 'ADMIN'>) {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized: missing bearer token' });
+    }
 
-  const token = authHeader.substring(7);
-  try {
-    const decoded = authService.verifyToken(token);
+    const token = authHeader.substring(7);
+    const decoded = AuthService.verifyToken(token);
+
+    if (!decoded) {
+      return res.status(401).json({ error: 'Unauthorized: invalid or expired token' });
+    }
+
     req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(401).json({ error: 'Invalid or expired session token' });
-  }
-}
 
-export function requireRole(role: 'GUEST' | 'HOST' | 'ADMIN') {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-    if (!req.user) {
-      res.status(401).json({ error: 'Authentication required' });
-      return;
+    if (roles && !roles.includes(decoded.role)) {
+      return res.status(403).json({ error: 'Forbidden: insufficient privileges' });
     }
-    if (req.user.role !== role && req.user.role !== 'ADMIN') {
-      res.status(403).json({ error: `Forbidden: requires ${role} privileges` });
-      return;
-    }
+
     next();
   };
 }

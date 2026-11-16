@@ -1,84 +1,89 @@
+import { store, Booking } from '../database/store';
+import { PricingService } from '../pricing/pricing.service';
 import { v4 as uuidv4 } from 'uuid';
-import { AirbnbStore, Booking } from '../database/store.js';
-import { ListingsService } from '../listings/listings.service.js';
-import { PricingService } from '../pricing/pricing.service.js';
 
 export class BookingsService {
-  private store = AirbnbStore.getInstance();
-  private listingsService = new ListingsService();
-  private pricingService = new PricingService();
+  private static mutex = new Set<string>();
 
-  public createHold(data: {
-    listingId: string;
-    guestId: string;
-    checkIn: string;
-    checkOut: string;
-    guestCount: number;
-  }): Booking {
-    const listing = this.listingsService.getListingById(data.listingId);
+  static async createHold(
+    guestId: string,
+    listingId: string,
+    checkIn: string,
+    checkOut: string,
+    guestCount: number = 1
+  ): Promise<Booking> {
+    const listing = store.listings.find(l => l.id === listingId);
     if (!listing) {
       throw new Error('Listing not found');
     }
 
-    if (data.guestCount > listing.maxGuests) {
-      const err = new Error(`Exceeds maximum guest capacity of ${listing.maxGuests}`);
-      (err as any).statusCode = 400;
-      throw err;
-    }
-
-    // Atomic Date-Overlap Check
-    if (this.store.hasBookingOverlap(data.listingId, data.checkIn, data.checkOut)) {
-      const err = new Error('Booking conflict: the selected dates are unavailable for this listing');
+    const lockKey = `${listingId}_${checkIn}_${checkOut}`;
+    if (this.mutex.has(lockKey)) {
+      const err = new Error('Booking conflict: Dates currently being reserved by another traveler');
       (err as any).statusCode = 409;
       throw err;
     }
 
-    // Authoritative Server-side Price Breakdown
-    const pricing = this.pricingService.calculatePrice(listing, data.checkIn, data.checkOut);
+    this.mutex.add(lockKey);
+    try {
+      store.sweepExpiredHolds();
 
-    // 10-Minute Hold Expiration
-    const holdExpiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+      const reqStart = new Date(checkIn).getTime();
+      const reqEnd = new Date(checkOut).getTime();
 
-    const booking: Booking = {
-      id: `book_${uuidv4().substring(0, 8)}`,
-      listingId: data.listingId,
-      guestId: data.guestId,
-      checkIn: data.checkIn,
-      checkOut: data.checkOut,
-      nightsCount: pricing.nightsCount,
-      guestCount: data.guestCount,
-      nightlyRate: pricing.nightlyRate,
-      baseSubtotal: pricing.baseSubtotal,
-      cleaningFee: pricing.cleaningFee,
-      serviceFee: pricing.serviceFee,
-      occupancyTax: pricing.occupancyTax,
-      totalPrice: pricing.totalPrice,
-      status: 'PENDING',
-      holdExpiresAt,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+      const collision = store.bookings.find(b => {
+        if (b.listingId !== listingId) return false;
+        if (['CANCELLED', 'EXPIRED'].includes(b.status)) return false;
 
-    this.store.bookings.push(booking);
-    return booking;
+        const bStart = new Date(b.checkIn).getTime();
+        const bEnd = new Date(b.checkOut).getTime();
+
+        return reqStart < bEnd && reqEnd > bStart;
+      });
+
+      if (collision) {
+        const err = new Error('Booking conflict: Selected dates are already booked for this property');
+        (err as any).statusCode = 409;
+        throw err;
+      }
+
+      const pricing = PricingService.calculatePrice(listing, checkIn, checkOut, guestCount);
+      const holdExpiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+      const booking: Booking = {
+        id: `book_${uuidv4().substring(0, 8)}`,
+        listingId,
+        guestId,
+        checkIn,
+        checkOut,
+        nightsCount: pricing.nightsCount,
+        guestCount,
+        nightlyRate: pricing.nightlyRate,
+        baseSubtotal: pricing.baseSubtotal,
+        cleaningFee: pricing.cleaningFee,
+        serviceFee: pricing.serviceFee,
+        occupancyTax: pricing.occupancyTax,
+        totalPrice: pricing.totalPrice,
+        status: 'PENDING',
+        holdExpiresAt,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      store.bookings.push(booking);
+      return booking;
+    } finally {
+      this.mutex.delete(lockKey);
+    }
   }
 
-  public confirmBooking(bookingId: string, guestId: string): Booking {
-    this.store.expireStaleHolds();
-    const booking = this.store.bookings.find(b => b.id === bookingId);
-    if (!booking) {
-      throw new Error('Booking not found');
-    }
+  static confirmBooking(bookingId: string, guestId: string): Booking {
+    const booking = store.bookings.find(b => b.id === bookingId);
+    if (!booking) throw new Error('Booking not found');
 
     if (booking.guestId !== guestId) {
-      const err = new Error('Unauthorized: you cannot confirm another guest reservation');
+      const err = new Error('Forbidden: You can only confirm your own reservations');
       (err as any).statusCode = 403;
-      throw err;
-    }
-
-    if (booking.status === 'EXPIRED') {
-      const err = new Error('Reservation hold has expired. Please create a new booking.');
-      (err as any).statusCode = 410;
       throw err;
     }
 
@@ -88,75 +93,52 @@ export class BookingsService {
       throw err;
     }
 
-    // Verify hold validity
     if (booking.holdExpiresAt && new Date(booking.holdExpiresAt).getTime() < Date.now()) {
       booking.status = 'EXPIRED';
-      const err = new Error('Reservation hold has timed out');
+      const err = new Error('Reservation hold has expired. Please select new dates.');
       (err as any).statusCode = 410;
       throw err;
     }
 
     booking.status = 'CONFIRMED';
     booking.confirmedAt = new Date().toISOString();
+    booking.updatedAt = new Date().toISOString();
+
     return booking;
   }
 
-  public cancelBooking(bookingId: string, guestId: string): { booking: Booking; refundAmount: number } {
-    const booking = this.store.bookings.find(b => b.id === bookingId);
-    if (!booking) {
-      throw new Error('Booking not found');
-    }
+  static cancelBooking(bookingId: string, userId: string, isHost: boolean = false): Booking {
+    const booking = store.bookings.find(b => b.id === bookingId);
+    if (!booking) throw new Error('Booking not found');
 
-    if (booking.guestId !== guestId) {
-      const err = new Error('Unauthorized: cannot cancel another guest booking');
+    const listing = store.listings.find(l => l.id === booking.listingId);
+
+    if (!isHost && booking.guestId !== userId) {
+      const err = new Error('Forbidden: Unauthorized to cancel this booking');
       (err as any).statusCode = 403;
       throw err;
     }
 
-    if (booking.status !== 'CONFIRMED' && booking.status !== 'PENDING') {
-      const err = new Error(`Cannot cancel reservation with status ${booking.status}`);
-      (err as any).statusCode = 400;
+    if (isHost && listing?.hostId !== userId) {
+      const err = new Error('Forbidden: Unauthorized host cancellation');
+      (err as any).statusCode = 403;
       throw err;
-    }
-
-    // Policy: full refund if cancelled > 5 days prior to check-in, otherwise 50%
-    const checkInTime = new Date(booking.checkIn).getTime();
-    const daysUntilCheckIn = (checkInTime - Date.now()) / (1000 * 60 * 60 * 24);
-
-    let refund = 0;
-    if (booking.status === 'CONFIRMED') {
-      refund = daysUntilCheckIn >= 5 ? booking.totalPrice : Math.round(booking.totalPrice * 0.5);
     }
 
     booking.status = 'CANCELLED';
     booking.cancelledAt = new Date().toISOString();
-    booking.refundAmount = refund;
+    booking.refundAmount = booking.totalPrice;
+    booking.updatedAt = new Date().toISOString();
 
-    return { booking, refundAmount: refund };
-  }
-
-  public getGuestBookings(guestId: string): Booking[] {
-    return this.store.bookings.filter(b => b.guestId === guestId);
-  }
-
-  public getHostBookings(hostId: string): (Booking & { listingTitle: string })[] {
-    const hostListingIds = this.store.listings.filter(l => l.hostId === hostId).map(l => l.id);
-    return this.store.bookings
-      .filter(b => hostListingIds.includes(b.listingId))
-      .map(b => {
-        const listing = this.listingsService.getListingById(b.listingId)!;
-        return {
-          ...b,
-          listingTitle: listing.title
-        };
-      });
-  }
-
-  // Helper for review gating
-  public markCompletedForTesting(bookingId: string): Booking {
-    const booking = this.store.bookings.find(b => b.id === bookingId);
-    if (!booking) throw new Error('Booking not found');
-    booking.status = 'COMPLETED';
     return booking;
+  }
+
+  static getGuestBookings(guestId: string): Booking[] {
+    return store.bookings.filter(b => b.guestId === guestId);
+  }
+
+  static getHostBookings(hostId: string): Booking[] {
+    const hostListingIds = new Set(store.listings.filter(l => l.hostId === hostId).map(l => l.id));
+    return store.bookings.filter(b => hostListingIds.has(b.listingId));
   }
 }

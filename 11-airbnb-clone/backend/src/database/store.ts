@@ -53,7 +53,7 @@ export interface Booking {
   cancelledAt?: string;
   refundAmount?: number;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface Review {
@@ -61,12 +61,14 @@ export interface Review {
   listingId: string;
   guestId: string;
   guestName: string;
-  rating: number; // 1 to 5
+  rating: number;
   comment: string;
   createdAt: string;
 }
 
 export class AirbnbStore {
+  private static instance: AirbnbStore;
+
   users: User[] = [];
   listings: Listing[] = [];
   bookings: Booking[] = [];
@@ -76,14 +78,25 @@ export class AirbnbStore {
     this.seed();
   }
 
-  seed() {
+  static getInstance(): AirbnbStore {
+    if (!AirbnbStore.instance) {
+      AirbnbStore.instance = new AirbnbStore();
+    }
+    return AirbnbStore.instance;
+  }
+
+  resetToSeed(): void {
+    this.seed();
+  }
+
+  seed(): void {
     const passwordHash = bcrypt.hashSync('Pass123!', 8);
     const adminHash = bcrypt.hashSync('AdminPass123!', 8);
 
     this.users = [
       {
         id: 'user_host_1',
-        email: 'host@example.com',
+        email: 'host@cartlystays.com',
         passwordHash,
         name: 'Julian Montgomery (Superhost)',
         role: 'HOST',
@@ -91,8 +104,8 @@ export class AirbnbStore {
         createdAt: new Date().toISOString()
       },
       {
-        id: 'user_host_2',
-        email: 'host@cartlystays.com',
+        id: 'user_host_1',
+        email: 'host@example.com',
         passwordHash,
         name: 'Julian Montgomery (Superhost)',
         role: 'HOST',
@@ -106,6 +119,15 @@ export class AirbnbStore {
         name: 'Maya Lin',
         role: 'GUEST',
         avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'user_guest_2',
+        email: 'alex@example.com',
+        passwordHash,
+        name: 'Alex Thorne',
+        role: 'GUEST',
+        avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
         createdAt: new Date().toISOString()
       },
       {
@@ -124,7 +146,7 @@ export class AirbnbStore {
         id: 'list_coastal_haven',
         hostId: 'user_host_1',
         title: 'Modern Coastal Cliff Villa with Infinity Pool',
-        description: 'Breathtaking ocean panoramic views perched atop coastal cliffs with floor-to-ceiling glass walls, heated saltwater pool, and private scenic path.',
+        description: 'Breathtaking ocean panoramic views perched atop Big Sur coastal cliffs with floor-to-ceiling glass walls, heated saltwater pool, and private scenic path.',
         category: 'Beachfront',
         location: 'Big Sur, California, United States',
         city: 'Big Sur',
@@ -198,8 +220,27 @@ export class AirbnbStore {
       }
     ];
 
-    // Pre-seed a completed booking for Maya Lin on Alpine Chalet so she can review
+    // Pre-seed confirmed booking on coastal haven for Dec 20 - 25, 2026
     this.bookings = [
+      {
+        id: 'book_seed_coastal',
+        listingId: 'list_coastal_haven',
+        guestId: 'user_guest_2',
+        checkIn: '2026-12-20',
+        checkOut: '2026-12-25',
+        nightsCount: 5,
+        guestCount: 2,
+        nightlyRate: 480,
+        baseSubtotal: 2400,
+        cleaningFee: 150,
+        serviceFee: 288,
+        occupancyTax: 255,
+        totalPrice: 3093,
+        status: 'CONFIRMED',
+        confirmedAt: '2026-10-01T12:00:00.000Z',
+        createdAt: '2026-10-01T11:50:00.000Z',
+        updatedAt: '2026-10-01T12:00:00.000Z'
+      },
       {
         id: 'book_past_completed_01',
         listingId: 'list_alpine_lodge',
@@ -212,8 +253,8 @@ export class AirbnbStore {
         baseSubtotal: 1280,
         cleaningFee: 120,
         serviceFee: 154,
-        occupancyTax: 128,
-        totalPrice: 1682,
+        occupancyTax: 140,
+        totalPrice: 1694,
         status: 'COMPLETED',
         confirmedAt: '2026-09-20T10:00:00.000Z',
         createdAt: '2026-09-20T09:50:00.000Z',
@@ -235,7 +276,7 @@ export class AirbnbStore {
   }
 
   sweepExpiredHolds(): number {
-    const now = new Date().getTime();
+    const now = Date.now();
     let expiredCount = 0;
     for (const b of this.bookings) {
       if (b.status === 'PENDING' && b.holdExpiresAt) {
@@ -249,4 +290,4 @@ export class AirbnbStore {
   }
 }
 
-export const store = new AirbnbStore();
+export const store = AirbnbStore.getInstance();
