@@ -12,11 +12,11 @@ This document tracks the phased implementation of all 12 independent, production
 | 04 | `04-hotel-booking-system` | Hotel Booking System | Completed | 2026-11-16 | 11/11 Passed (Unit, Seasonal Rates, Concurrency Lock, E2E) |
 | 05 | `05-restaurant-reservation-system` | Restaurant Reservation System | Completed | 2026-11-16 | 8/8 Passed (Unit, Table Merging, Turnover Buffer, Waitlist, E2E) |
 | 06 | `06-movie-ticket-booking` | Movie Ticket Booking | Completed | 2026-11-16 | 8/8 Passed (2D Seat Matrix, 8-Min Hold Sweeper, Usher Gate Rejection, E2E) |
-| 07 | `07-grocery-delivery-app` | Grocery Delivery App | Completed | 2026-11-16 | 8/8 Passed (Slot Capacity Mutex, Substitution Policies, Fulfillment Stepper, E2E) |
+| 07 | `07-grocery-delivery-app` | Grocery Delivery App | Completed | 2026-11-16 | 11/11 Passed (8 Vitest + 3 Pytest VRP Route Optimizer) |
 | 08 | `08-car-rental-system` | Car Rental System | Completed | 2026-11-16 | 8/8 Passed (Date-Overlap Lock, Tiered Discounts, Escrow Damage Deductions, E2E) |
-| 09 | `09-real-estate-listing-platform` | Real Estate Listing Platform | Completed | 2026-11-16 | 7/7 Passed (Haversine Distance, Bounding Box, Price History Ledger, E2E) |
+| 09 | `09-real-estate-listing-platform` | Real Estate Listing Platform | Completed | 2026-11-16 | 10/10 Passed (8 Vitest + 2 Pytest AVM Valuation Engine) |
 | 10 | `10-house-rental-platform` | House Rental Platform | Completed | 2026-11-16 | 8/8 Passed (Tour Concurrency Mutex, Screening Verification, Lease Execution, E2E) |
-| 11 | `11-airbnb-clone` | Airbnb Clone | Completed | 2026-11-16 | 7/7 Passed (Date Overlap Mutex, Fee Snapshot, Hold Timeout, Review Gate, E2E) |
+| 11 | `11-airbnb-clone` | Airbnb Clone | Completed | 2026-11-16 | 14/14 Passed (Date Overlap Mutex, Fee Snapshot, Hold Timeout, Review Gate, E2E) |
 | 12 | `12-flight-booking-system` | Flight Booking System | Completed | 2026-11-16 | 7/7 Passed (Connecting Buffer, Capacity Mutex, Seat Uniqueness, Demo PNR, E2E) |
 
 ## Execution Methodology
