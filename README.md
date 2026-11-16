@@ -30,7 +30,7 @@ Every application is engineered with its own dedicated frontend, backend, databa
 | 09 | [`09-real-estate-listing-platform`](./09-real-estate-listing-platform/) | Real Estate Listing Platform | Spatial Property Marketplace | Next.js, Express/TypeScript, PostgreSQL, Prisma, Redis | Completed | [Docs](./09-real-estate-listing-platform/docs/) |
 | 10 | [`10-house-rental-platform`](./10-house-rental-platform/) | House Rental Platform | Residential Leasing | Next.js, Express/TypeScript, PostgreSQL, Prisma, Redis | Completed | [Docs](./10-house-rental-platform/docs/) |
 | 11 | [`11-airbnb-clone`](./11-airbnb-clone/) | Airbnb Clone | Short-Stay Marketplace | Next.js, Express/TypeScript, PostgreSQL, Prisma, Socket.IO | Completed | [Docs](./11-airbnb-clone/docs/) |
-| 12 | [`12-flight-booking-system`](./12-flight-booking-system/) | Flight Booking System | Demonstration Travel Booking | Next.js, Express/TypeScript, PostgreSQL, Prisma, Redis | In Progress | [Docs](./12-flight-booking-system/docs/) |
+| 12 | [`12-flight-booking-system`](./12-flight-booking-system/) | Flight Booking System | Demonstration Travel Booking | Next.js, Express/TypeScript, PostgreSQL, Prisma, Redis | Completed | [Docs](./12-flight-booking-system/docs/) |
 
 ---
 
@@ -51,7 +51,7 @@ All projects are hosted in the unified monorepo with dedicated directories. Clou
 | 09 | Real Estate Listing Platform | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/09-real-estate-listing-platform) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
 | 10 | House Rental Platform | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/10-house-rental-platform) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
 | 11 | Airbnb Clone | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/11-airbnb-clone) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
-| 12 | Flight Booking System | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/12-flight-booking-system) | **Not Deployed** | **Not Deployed** | Local Containerized / In Progress |
+| 12 | Flight Booking System | [GitHub Code](https://github.com/rahat4528/Cartly/tree/main/12-flight-booking-system) | **Not Deployed** | **Not Deployed** | Local Containerized / Ready |
 
 ---
 

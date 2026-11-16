@@ -17,7 +17,7 @@ This document tracks the phased implementation of all 12 independent, production
 | 09 | `09-real-estate-listing-platform` | Real Estate Listing Platform | Completed | 2026-11-16 | 7/7 Passed (Haversine Distance, Bounding Box, Price History Ledger, E2E) |
 | 10 | `10-house-rental-platform` | House Rental Platform | Completed | 2026-11-16 | 8/8 Passed (Tour Concurrency Mutex, Screening Verification, Lease Execution, E2E) |
 | 11 | `11-airbnb-clone` | Airbnb Clone | Completed | 2026-11-16 | 7/7 Passed (Date Overlap Mutex, Fee Snapshot, Hold Timeout, Review Gate, E2E) |
-| 12 | `12-flight-booking-system` | Flight Booking System | In Progress | - | In Progress |
+| 12 | `12-flight-booking-system` | Flight Booking System | Completed | 2026-11-16 | 7/7 Passed (Connecting Buffer, Capacity Mutex, Seat Uniqueness, Demo PNR, E2E) |
 
 ## Execution Methodology
 
