@@ -1,0 +1,104 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  GUEST
+  HOST
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(GUEST)
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+
+  hostedListings Listing[]
+  bookings       Booking[]
+  reviews        Review[]
+}
+
+model Listing {
+  id            String   @id @default(uuid())
+  hostId        String
+  title         String
+  description   String
+  category      String
+  location      String
+  city          String
+  country       String
+  latitude      Float
+  longitude     Float
+  nightlyRate   Int
+  cleaningFee   Int
+  maxGuests     Int
+  bedrooms      Int
+  beds          Int
+  bathrooms     Float
+  images        String[]
+  amenities     String[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  host     User      @relation(fields: [hostId], references: [id])
+  bookings Booking[]
+  reviews  Review[]
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  listingId       String
+  guestId         String
+  checkIn         String
+  checkOut        String
+  nightsCount     Int
+  guestCount      Int
+  nightlyRate     Int
+  baseSubtotal    Int
+  cleaningFee     Int
+  serviceFee      Int
+  occupancyTax    Int
+  totalPrice      Int
+  status          BookingStatus @default(PENDING)
+  holdExpiresAt   DateTime?
+  confirmedAt     DateTime?
+  cancelledAt     DateTime?
+  refundAmount    Int?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  listing Listing @relation(fields: [listingId], references: [id])
+  guest   User    @relation(fields: [guestId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  listingId String
+  guestId   String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+
+  listing Listing @relation(fields: [listingId], references: [id])
+  guest   User    @relation(fields: [guestId], references: [id])
+
+  @@unique([listingId, guestId])
+}

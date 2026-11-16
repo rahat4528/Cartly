@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cartly-airbnb-db
+    environment:
+      POSTGRES_DB: cartly_airbnb_db
+      POSTGRES_USER: cartly_user
+      POSTGRES_PASSWORD: cartly_password
+    ports:
+      - "5443:5432"
+    volumes:
+      - airbnb_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: cartly-airbnb-redis
+    ports:
+      - "6390:6379"
+
+volumes:
+  airbnb_postgres_data:
